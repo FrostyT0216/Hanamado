@@ -30,20 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compute base path
-        id: base
-        env:
-          REPO: ${{ github.event.repository.name }}
-        run: |
-          if [ "$REPO" = "${{ github.repository_owner }}.github.io" ]; then
-            echo "path=/" >> "$GITHUB_OUTPUT"
-          else
-            echo "path=/$REPO/" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Build
-        env:
-          VITE_BASE: ${{ steps.base.outputs.path }}
+        # 使用自定义域名时，页面在根路径访问，base 固定为 /
         run: npm run build
 
       - name: Upload Pages artifact
