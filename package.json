@@ -1,0 +1,32 @@
+{
+  "name": "hanamado",
+  "private": true,
+  "version": "1.0.0",
+  "description": "話窓 Hanamado — 一款纯网页架构的日语 AI 对话学习工具，通过 6 种情景角色对话与三级难度（N5–N1+）提升日语能力，支持自动分词、点击查词、语法讲解，数据本地保存。",
+  "type": "module",
+  "scripts": {
+    "start": "vite --host 0.0.0.0 --port 5173 --open",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "parse-vocab": "npx tsx scripts/parse-vocab.ts"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.16",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "autoprefixer": "^10.5.2",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.4"
+  }
+}

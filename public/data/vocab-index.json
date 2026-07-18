@@ -1,0 +1,24 @@
+{
+  "levels": {
+    "N5": {
+      "count": 807,
+      "file": "vocab-n5.json"
+    },
+    "N4": {
+      "count": 757,
+      "file": "vocab-n4.json"
+    },
+    "N3": {
+      "count": 1820,
+      "file": "vocab-n3.json"
+    },
+    "N2": {
+      "count": 3208,
+      "file": "vocab-n2.json"
+    },
+    "N1": {
+      "count": 4030,
+      "file": "vocab-n1.json"
+    }
+  }
+}

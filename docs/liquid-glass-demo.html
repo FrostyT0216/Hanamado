@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>液态玻璃效果 Demo · 跟随鼠标（outpace 优化版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  body { background: #0b0d1a; }
+
+  /* ============ 背景层 ============
+     每日 Bing 美图作为背景（全屏 cover）。
+     彩色光斑已移除——真实照片的高频细节比色块更能体现折射。
+     叠加一层半透明大字 "GLASS"，为折射提供高对比边缘。 */
+  .backdrop {
+    position: fixed; inset: 0; overflow: hidden; z-index: 1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* 加载前显示深色兜底 */
+    background-color: #0b0d1a;
+  }
+
+  .stage-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.35);
+    /* 给字加 text-shadow 让它在浅色/深色背景上都可见 */
+    text-shadow: 0 0 30px rgba(0,0,0,0.5);
+    font-size: 22vw; font-weight: 900; letter-spacing: -0.05em;
+    user-select: none;
+    /* 液体玻璃效果：轻微模糊 + 对比 + 饱和 → 像透过毛玻璃看字 */
+    filter: blur(1px) contrast(1.2) saturate(1.3);
+    transition: filter 0.3s ease;
+  }
+
+  /* ============ 玻璃卡片（lens box） ============
+     关键：卡片本身不做 backdrop-filter。
+     折射发生在卡片内部的"背景副本"上，靠 overflow:hidden 做窗口。 */
+  .glass-card {
+    position: fixed; left: 0; top: 0;
+    width: 320px; height: 200px;
+    border-radius: 100px;          /* 胶囊形，和 SDF 透镜形状对应 */
+    overflow: hidden;              /* 关键：裁剪副本 = 透镜窗口 */
+    z-index: 10;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  /* 反向定位的背景副本：折射在这里发生 */
+  .glass-copy {
+    position: absolute; left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    will-change: transform;
+    /* 普通 filter（非 backdrop-filter）→ 跨浏览器工作 */
+    filter: url(#glass-filter);
+  }
+  .glass-copy .backdrop { position: absolute; inset: 0; }
+
+  /* 半透明 tint 层：微微加深，让文字更清晰但保留背景可见 */
+  .glass-tint {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg,
+      rgba(8,10,20,0.22),
+      rgba(12,15,28,0.16) 55%,
+      rgba(8,10,20,0.22));
+    pointer-events: none;
+  }
+
+  /* specular 边缘高光层 —— 多层 inset box-shadow 叠加实现渐变边缘 */
+  .glass-specular {
+    position: absolute; inset: 0;
+    border-radius: 100px;
+    box-shadow:
+      inset 0 0 0 0.5px rgba(255,255,255,0.40),   /* 极细亮边 → 清晰边框 */
+      inset 0 0 4px   rgba(255,255,255,0.22),      /* 第一层辉光 */
+      inset 0 0 12px  rgba(255,255,255,0.10),      /* 第二层渐变衰减 */
+      inset 0 0 24px  rgba(255,255,255,0.04),      /* 第三层宽散射 */
+      inset 0 1px 0   rgba(255,255,255,0.35),      /* 顶部高光 */
+      inset 0 -1px 0  rgba(255,255,255,0.15),      /* 底部高光 */
+      inset 0 -4px 10px rgba(0,0,0,0.08);          /* 内嵌底暗 */
+    pointer-events: none;
+  }
+  /* 外阴影：让卡片"浮"起来 */
+  .glass-card::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: 100px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.30);
+    pointer-events: none;
+  }
+
+  /* 文字层 */
+  .glass-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.50);
+    gap: 6px; pointer-events: none;
+  }
+  .glass-label .title { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
+  .glass-label .sub   { font-size: 11px; font-weight: 600; opacity: 0.75; letter-spacing: 0.22em; text-transform: uppercase; }
+
+  /* SVG defs 藏这里 */
+  .svg-defs { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+  .hint {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    color: rgba(255,255,255,0.65); font-size: 13px; letter-spacing: 0.05em;
+    pointer-events: none; user-select: none; z-index: 5;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  /* 加载状态提示 */
+  .loading {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    color: rgba(255,255,255,0.7); font-size: 14px; letter-spacing: 0.1em;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    pointer-events: none; user-select: none; z-index: 6;
+    transition: opacity 0.4s ease;
+  }
+  .loading.hidden { opacity: 0; }
+
+  /* ============ 可访问性 ============ */
+  @media (prefers-reduced-motion: reduce) {
+    /* 无动画内容，保留空块供未来扩展 */
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    /* 用户在系统层表示"看不清玻璃上的字" → 退化为不透明面板 */
+    .glass-copy { filter: none; }
+    .glass-tint { background: rgba(10,12,22,0.85); mix-blend-mode: normal; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 原始背景（每日 Bing 图片 + 大字叠加） -->
+  <div class="backdrop" id="backdrop">
+    <div class="stage-text">GLASS</div>
+  </div>
+
+  <!-- SVG 滤镜：feImage 装位移贴图，feDisplacementMap 搬像素 -->
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glass-filter"
+              filterUnits="userSpaceOnUse"
+              color-interpolation-filters="sRGB"
+              x="0" y="0" width="320" height="200">
+        <feImage id="glass-map" x="0" y="0" width="320" height="200"
+                 preserveAspectRatio="none" href="" />
+        <feDisplacementMap in="SourceGraphic" in2="glass-map"
+                           scale="1"
+                           xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- 玻璃卡片（lens box）：分层结构 -->
+  <div class="glass-card" id="glassCard">
+    <!-- 1. 折射层：反向定位的背景副本 -->
+    <div class="glass-copy" id="glassCopy"></div>
+    <!-- 2. tint 层 -->
+    <div class="glass-tint"></div>
+    <!-- 3. specular 高光层 -->
+    <div class="glass-specular"></div>
+    <!-- 4. 文字层 -->
+    <div class="glass-label">
+      <div class="title">Liquid Glass</div>
+      <div class="sub">Follow your cursor</div>
+    </div>
+  </div>
+
+  <div class="hint">移动鼠标，玻璃卡片会平滑跟随 ｜ 背景：每日 Bing 美图 ｜ Safari / Firefox 也工作</div>
+
+  <div class="loading" id="loading">正在加载 Bing 每日美图…</div>
+
+<script>
+/* ============================================================
+   液态玻璃效果 —— outpace studios 优化版
+   参考 https://glass.outpacestudios.com/
+   
+   相对初版的三处关键升级：
+     1. 光学：Snell 定律算真实折射，而非 smoothStep 衰减
+     2. 架构：filtered background copy 替代 backdrop-filter
+              → 在 Safari / Firefox 也工作，不再退化为模糊
+     3. 工程：blob: URL 替代 data: URI（WebKit 不加载 data: URI）
+              + 分层结构 + 可访问性 media query
+   ============================================================ */
+
+/* ---------- 1. 工具函数 ---------- */
+function length(x, y) { return Math.sqrt(x * x + y * y); }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// 圆角矩形 SDF：内部为负，外部为正，边缘为 0
+function roundedRectSDF(x, y, halfW, halfH, radius) {
+  const qx = Math.abs(x) - halfW + radius;
+  const qy = Math.abs(y) - halfH + radius;
+  return Math.min(Math.max(qx, qy), 0) + length(Math.max(qx, 0), Math.max(qy, 0)) - radius;
+}
+
+/* ---------- 2. Snell 定律折射（核心光学） ----------
+   outpace 的物理建模：
+     - 透镜 = squircle 圆顶（中心平、边缘陡）
+     - 对每个像素取透镜表面斜率
+     - 用 Snell 定律（n=1.5 真实玻璃）算折射角
+     - bend = sin(θ_i - θ_t)：中心 = 0，边缘 = 最大
+   关键：折射由光学"算"出来，不是用 gradient "画"出来的。
+*/
+const IOR  = 1.5;   // 玻璃折射率
+const RIM  = 0.18;  // 边缘折射带宽度（归一化坐标）
+const GAIN = 80;    // 折射强度增益（像素）
+
+function buildDisplacementMap(width, height) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.createImageData(width, height);
+  const data = imgData.data;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const uvx = x / width  - 0.5;   // 归一化 + 居中到 [-0.5, 0.5]
+      const uvy = y / height - 0.5;
+
+      // 到透镜边缘的距离（SDF：内部为负）
+      const d = roundedRectSDF(uvx, uvy, 0.3, 0.2, 0.6);
+      const distFromEdge = -d;        // 内部为正
+
+      // x = 从边缘往内的深度（0 = 边缘, 1 = 进入平坦中心区）
+      const xDepth = clamp(distFromEdge / RIM, 0, 1);
+
+      // squircle 圆顶的表面斜率（outpace 公式）
+      //   xDepth=1（中心）→ slope=0；xDepth=0（边缘）→ slope→∞
+      const oneMinusX = 1 - xDepth;
+      const denom = Math.pow(1 - Math.pow(oneMinusX, 4), 0.75);
+      const slope = denom < 1e-6 ? 1e6 : Math.pow(oneMinusX, 3) / denom;
+
+      // Snell 定律：θ_t = asin(sin(θ_i) / n)
+      const thetaI = Math.atan(slope);
+      const thetaT = Math.asin(Math.sin(thetaI) / IOR);
+      const bend   = Math.sin(thetaI - thetaT);   // 0 ~ ~0.745
+
+      // 折射方向 = SDF 法线，通过梯度数值差分计算（精确到边缘方向，修复平直底部边缘的折射）
+      // 公式：梯度 = (d(+dx) - d(-dx))/2dx  → 得到精确法线方向
+      const eps = 0.005;
+      const dx = roundedRectSDF(uvx + eps, uvy, 0.3, 0.2, 0.6) - roundedRectSDF(uvx - eps, uvy, 0.3, 0.2, 0.6);
+      const dy = roundedRectSDF(uvx, uvy + eps, 0.3, 0.2, 0.6) - roundedRectSDF(uvx, uvy - eps, 0.3, 0.2, 0.6);
+      const len = length(dx, dy) || 1e-6;
+      const nx = dx / len;   // 精确法线 x 分量
+      const ny = dy / len;   // 精确法线 y 分量
+
+      // 写入 R/G：128 = 不偏移
+      const r = 128 + nx * bend * GAIN;
+      const g = 128 + ny * bend * GAIN;
+      data[i]   = clamp(r, 0, 255);
+      data[i+1] = clamp(g, 0, 255);
+      data[i+2] = 0;
+      data[i+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return { canvas };   // scale 已直接编码进 R/G，filter scale=1
+}
+
+/* ---------- 3. 把贴图塞进滤镜（用 blob: URL！） ----------
+   关键：不能用 data: URI。WebKit 在 feImage 里静默拒绝加载 data: URI，
+   贴图永远到不了滤镜 → 玻璃塌缩成平面。blob: URL 在所有浏览器都工作。
+*/
+function applyDisplacementMap(width, height) {
+  const { canvas } = buildDisplacementMap(width, height);
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const feImage = document.getElementById('glass-map');
+    feImage.setAttribute('href', url);
+    feImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', url);
+    // feDisplacementMap 的 scale 在 HTML 里已写死为 1（offset 已直接编码进 R/G）
+  });
+}
+
+/* ---------- 4. 获取 Bing 每日图片 ----------
+   通过 Bing 官方 API 获取当日美图 URL，设为背景。
+   UHD 分辨率（4K），cover 模式全屏铺满。
+   失败时回退到默认 Bing 图片（不会显示深色背景）。
+
+   URL 构建策略：
+   API 返回的 url 形如：/th?id=OHR.xxx_ZH-CN..._1920x1080.jpg&...
+   更稳的方式是用 urlbase 直接拼 _UHD.jpg，避免字符串替换失败。
+*/
+const BING_API = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN';
+// 兜底：一张已知可用的 Bing UHD 图片（凯泽斯堡，法国）
+const BING_FALLBACK_URL = 'https://www.bing.com/th?id=OHR.KaysersbergVillage_ZH-CN0445080679_UHD.jpg';
+
+function buildBingUhdUrl(imageObj) {
+  // urlbase 形如：/th?id=OHR.xxx_ZH-CN...
+  const base = imageObj.urlbase;
+  return `https://www.bing.com${base}_UHD.jpg`;
+}
+
+function isFileProtocol() {
+  return location.protocol === 'file:';
+}
+
+function setBackdropImage(url) {
+  const backdrop = document.getElementById('backdrop');
+  const copyBackdrop = document.querySelector('#glassCopy .backdrop');
+  backdrop.style.backgroundImage = `url(${url})`;
+  if (copyBackdrop) copyBackdrop.style.backgroundImage = `url(${url})`;
+}
+
+async function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(url);
+    img.onerror = () => {
+      console.warn('[Bing] Image preload failed, will still try setting as background:', url);
+      resolve(url); // 预加载失败也返回 URL，让浏览器 background-image 自己尝试
+    };
+    img.src = url;
+  });
+}
+
+async function fetchBingImage() {
+  // 本地 file:// 打开时，浏览器禁止 fetch 到 https，直接走兜底图
+  if (isFileProtocol()) {
+    console.warn('[Bing] file:// protocol detected; using fallback image. Serve via http://localhost for daily updates.');
+    return loadImage(BING_FALLBACK_URL);
+  }
+
+  try {
+    const resp = await fetch(BING_API);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const image = data.images && data.images[0];
+    if (!image || !image.urlbase) throw new Error('No image in Bing API response');
+
+    const uhdUrl = buildBingUhdUrl(image);
+    console.log('[Bing] Loading UHD image:', uhdUrl);
+
+    await loadImage(uhdUrl);
+    console.log('[Bing] UHD image loaded OK');
+    return uhdUrl;
+  } catch (e) {
+    console.warn('[Bing] API or image failed, using fallback. Reason:', e);
+    return loadImage(BING_FALLBACK_URL);
+  }
+}
+
+/* ---------- 5. 克隆背景到玻璃副本 ----------
+   outpace 的"共享 backdrop"架构：渲染一份背景，复制一份到 lens box 内部，
+   副本和原背景显示同一张背景图片 → 视觉同步 → 玻璃里看到的是 live 背景。
+
+   注意 1：克隆必须在 Bing 图片 URL 设置到 backdrop 之后执行，
+           否则副本里没有背景图。
+   注意 2：cloneNode(true) 理论上会复制内联 style，但我们额外把图片 URL
+           写进副本的 style.backgroundImage，防止某些浏览器克隆内联样式异常。
+*/
+function setupBackdropCopy() {
+  const backdrop = document.getElementById('backdrop');
+  const copy = document.getElementById('glassCopy');
+  const clone = backdrop.cloneNode(true);
+  clone.id = '';                  // 避免重复 id
+  copy.appendChild(clone);
+}
+
+/* ---------- 6. 卡片跟随鼠标 + 副本反向定位 ----------
+   副本必须"屏幕固定"，被卡片窗口裁剪。
+   实现：副本用 transform: translate(-curX, -curY) 反向移动，
+        正好抵消卡片自身的 translate(curX, curY) → 副本视觉位置 = (0,0)。
+*/
+const card = document.getElementById('glassCard');
+const copy = document.getElementById('glassCopy');
+const CARD_W = 320, CARD_H = 200;
+
+let targetX = window.innerWidth  / 2 - CARD_W / 2;
+let targetY = window.innerHeight / 2 - CARD_H / 2;
+let curX = targetX, curY = targetY;
+
+// 尊重 prefers-reduced-motion：用户不想看动画 → 瞬移而非缓动
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EASE = reduceMotion ? 1 : 0.15;
+
+window.addEventListener('mousemove', (e) => {
+  targetX = e.clientX - CARD_W / 2;
+  targetY = e.clientY - CARD_H / 2;
+});
+
+function loop() {
+  curX += (targetX - curX) * EASE;
+  curY += (targetY - curY) * EASE;
+  // 卡片：跟随鼠标
+  card.style.transform = `translate3d(${curX}px, ${curY}px, 0)`;
+  // 副本：反向 → 在 viewport 上始终固定在 (0,0)
+  copy.style.transform = `translate3d(${-curX}px, ${-curY}px, 0)`;
+  requestAnimationFrame(loop);
+}
+
+/* ---------- 7. 启动 ----------
+   顺序：先克隆空背景副本 → 获取 Bing 图片 → 同步设置原背景+副本背景图
+         → 生成位移贴图 → 启动跟随循环
+*/
+(async function start() {
+  const loading = document.getElementById('loading');
+
+  // 1. 先克隆一个空的背景副本（这样折射层结构先准备好）
+  setupBackdropCopy();
+
+  // 2. 获取 Bing 图片并预加载
+  const uhdUrl = await fetchBingImage();
+
+  // 3. 同步设置原背景和副本背景图
+  setBackdropImage(uhdUrl);
+
+  // 4. 隐藏加载提示
+  if (loading) loading.classList.add('hidden');
+
+  // 5. 生成位移贴图并启动跟随
+  applyDisplacementMap(CARD_W, CARD_H);
+  loop();
+})();
+</script>
+</body>
+</html>

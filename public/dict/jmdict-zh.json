@@ -1,0 +1,946 @@
+{
+  "こんにちは": {
+    "word": "こんにちは",
+    "reading": "こんにちは",
+    "romaji": "konnichiwa",
+    "pos": ["感動詞"],
+    "gloss": ["你好"],
+    "examples": ["こんにちは、お元気ですか？"]
+  },
+  "おはよう": {
+    "word": "おはよう",
+    "reading": "おはよう",
+    "romaji": "ohayou",
+    "pos": ["感動詞"],
+    "gloss": ["早上好"],
+    "examples": ["おはようございます！"]
+  },
+  "こんばんは": {
+    "word": "こんばんは",
+    "reading": "こんばんは",
+    "romaji": "konbanwa",
+    "pos": ["感動詞"],
+    "gloss": ["晚上好"],
+    "examples": ["こんばんは、今日はどうでしたか？"]
+  },
+  "ありがとう": {
+    "word": "ありがとう",
+    "reading": "ありがとう",
+    "romaji": "arigatou",
+    "pos": ["感動詞"],
+    "gloss": ["谢谢"],
+    "examples": ["ありがとうございます！"]
+  },
+  "さようなら": {
+    "word": "さようなら",
+    "reading": "さようなら",
+    "romaji": "sayounara",
+    "pos": ["感動詞"],
+    "gloss": ["再见"],
+    "examples": ["さようなら、また明日！"]
+  },
+  "はい": {
+    "word": "はい",
+    "reading": "はい",
+    "romaji": "hai",
+    "pos": ["感動詞"],
+    "gloss": ["是", "好的"],
+    "examples": ["はい、わかりました。"]
+  },
+  "いいえ": {
+    "word": "いいえ",
+    "reading": "いいえ",
+    "romaji": "iie",
+    "pos": ["感動詞"],
+    "gloss": ["不", "不是"],
+    "examples": ["いいえ、違います。"]
+  },
+  "私": {
+    "word": "私",
+    "reading": "わたし",
+    "romaji": "watashi",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["我"],
+    "examples": ["私は学生です。"]
+  },
+  "僕": {
+    "word": "僕",
+    "reading": "ぼく",
+    "romaji": "boku",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["我（男性自称）"],
+    "examples": ["僕は日本人です。"]
+  },
+  "あなた": {
+    "word": "あなた",
+    "reading": "あなた",
+    "romaji": "anata",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["你"],
+    "examples": ["あなたは元気ですか？"]
+  },
+  "彼": {
+    "word": "彼",
+    "reading": "かれ",
+    "romaji": "kare",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["他", "男朋友"],
+    "examples": ["彼は先生です。"]
+  },
+  "彼女": {
+    "word": "彼女",
+    "reading": "かのじょ",
+    "romaji": "kanojo",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["她", "女朋友"],
+    "examples": ["彼女は医者です。"]
+  },
+  "人": {
+    "word": "人",
+    "reading": "ひと",
+    "romaji": "hito",
+    "pos": ["名詞"],
+    "gloss": ["人"],
+    "examples": ["あの人は誰ですか？"]
+  },
+  "日本": {
+    "word": "日本",
+    "reading": "にほん",
+    "romaji": "nihon",
+    "pos": ["名詞"],
+    "gloss": ["日本"],
+    "examples": ["日本に行きたいです。"]
+  },
+  "日本語": {
+    "word": "日本語",
+    "reading": "にほんご",
+    "romaji": "nihongo",
+    "pos": ["名詞"],
+    "gloss": ["日语"],
+    "examples": ["日本語を勉強しています。"]
+  },
+  "中国": {
+    "word": "中国",
+    "reading": "ちゅうごく",
+    "romaji": "chuugoku",
+    "pos": ["名詞"],
+    "gloss": ["中国"],
+    "examples": ["中国から来ました。"]
+  },
+  "時間": {
+    "word": "時間",
+    "reading": "じかん",
+    "romaji": "jikan",
+    "pos": ["名詞"],
+    "gloss": ["时间"],
+    "examples": ["時間がありますか？"]
+  },
+  "今日": {
+    "word": "今日",
+    "reading": "きょう",
+    "romaji": "kyou",
+    "pos": ["名詞"],
+    "gloss": ["今天"],
+    "examples": ["今日はいい天気ですね。"]
+  },
+  "明日": {
+    "word": "明日",
+    "reading": "あした",
+    "romaji": "ashita",
+    "pos": ["名詞"],
+    "gloss": ["明天"],
+    "examples": ["明日は休みです。"]
+  },
+  "昨日": {
+    "word": "昨日",
+    "reading": "きのう",
+    "romaji": "kinou",
+    "pos": ["名詞"],
+    "gloss": ["昨天"],
+    "examples": ["昨日は何をしましたか？"]
+  },
+  "友達": {
+    "word": "友達",
+    "reading": "ともだち",
+    "romaji": "tomodachi",
+    "pos": ["名詞"],
+    "gloss": ["朋友"],
+    "examples": ["友達と遊びました。"]
+  },
+  "学校": {
+    "word": "学校",
+    "reading": "がっこう",
+    "romaji": "gakkou",
+    "pos": ["名詞"],
+    "gloss": ["学校"],
+    "examples": ["学校に行きます。"]
+  },
+  "会社": {
+    "word": "会社",
+    "reading": "かいしゃ",
+    "romaji": "kaisha",
+    "pos": ["名詞"],
+    "gloss": ["公司"],
+    "examples": ["会社に勤めています。"]
+  },
+  "店": {
+    "word": "店",
+    "reading": "みせ",
+    "romaji": "mise",
+    "pos": ["名詞"],
+    "gloss": ["商店", "店铺"],
+    "examples": ["この店は美味しいです。"]
+  },
+  "家": {
+    "word": "家",
+    "reading": "いえ",
+    "romaji": "ie",
+    "pos": ["名詞"],
+    "gloss": ["家", "房子"],
+    "examples": ["家に帰ります。"]
+  },
+  "食べる": {
+    "word": "食べる",
+    "reading": "たべる",
+    "romaji": "taberu",
+    "pos": ["動詞", "他動詞", "一段"],
+    "gloss": ["吃"],
+    "examples": ["ご飯を食べる", "朝ごはんを食べました"]
+  },
+  "飲む": {
+    "word": "飲む",
+    "reading": "のむ",
+    "romaji": "nomu",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["喝", "饮"],
+    "examples": ["水を飲む", "お茶を飲みませんか？"]
+  },
+  "行く": {
+    "word": "行く",
+    "reading": "いく",
+    "romaji": "iku",
+    "pos": ["動詞", "自動詞", "五段"],
+    "gloss": ["去"],
+    "examples": ["東京に行く", "学校に行きます"]
+  },
+  "来る": {
+    "word": "来る",
+    "reading": "くる",
+    "romaji": "kuru",
+    "pos": ["動詞", "自動詞", "カ変"],
+    "gloss": ["来"],
+    "examples": ["友達が来る", "先生が来ました"]
+  },
+  "する": {
+    "word": "する",
+    "reading": "する",
+    "romaji": "suru",
+    "pos": ["動詞", "サ変"],
+    "gloss": ["做", "干"],
+    "examples": ["勉強する", "何をしますか？"]
+  },
+  "見る": {
+    "word": "見る",
+    "reading": "みる",
+    "romaji": "miru",
+    "pos": ["動詞", "他動詞", "一段"],
+    "gloss": ["看", "观看"],
+    "examples": ["映画を見る", "テレビを見ます"]
+  },
+  "聞く": {
+    "word": "聞く",
+    "reading": "きく",
+    "romaji": "kiku",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["听", "问"],
+    "examples": ["音楽を聞く", "先生に聞きます"]
+  },
+  "話す": {
+    "word": "話す",
+    "reading": "はなす",
+    "romaji": "hanasu",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["说", "讲"],
+    "examples": ["日本語を話す", "友達と話しました"]
+  },
+  "読む": {
+    "word": "読む",
+    "reading": "よむ",
+    "romaji": "yomu",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["读", "阅读"],
+    "examples": ["本を読む", "新聞を読みます"]
+  },
+  "書く": {
+    "word": "書く",
+    "reading": "かく",
+    "romaji": "kaku",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["写", "书写"],
+    "examples": ["手紙を書く", "名前を書いてください"]
+  },
+  "買う": {
+    "word": "買う",
+    "reading": "かう",
+    "romaji": "kau",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["买", "购买"],
+    "examples": ["パンを買う", "何を買いましたか？"]
+  },
+  "会う": {
+    "word": "会う",
+    "reading": "あう",
+    "romaji": "au",
+    "pos": ["動詞", "自動詞", "五段"],
+    "gloss": ["见", "会面"],
+    "examples": ["友達に会う", "明日会いましょう"]
+  },
+  "ある": {
+    "word": "ある",
+    "reading": "ある",
+    "romaji": "aru",
+    "pos": ["動詞", "自動詞", "五段"],
+    "gloss": ["有", "在（无生命物）"],
+    "examples": ["本がある", "時間がありますか？"]
+  },
+  "いる": {
+    "word": "いる",
+    "reading": "いる",
+    "romaji": "iru",
+    "pos": ["動詞", "自動詞", "一段"],
+    "gloss": ["有", "在（有生命物）"],
+    "examples": ["猫がいる", "彼は部屋にいます"]
+  },
+  "思う": {
+    "word": "思う",
+    "reading": "おもう",
+    "romaji": "omou",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["想", "认为"],
+    "examples": ["そう思う", "どう思いますか？"]
+  },
+  "言う": {
+    "word": "言う",
+    "reading": "いう",
+    "romaji": "iu",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["说", "讲"],
+    "examples": ["名前を言う", "何と言いましたか？"]
+  },
+  "知る": {
+    "word": "知る",
+    "reading": "しる",
+    "romaji": "shiru",
+    "pos": ["動詞", "他動詞", "五段"],
+    "gloss": ["知道", "了解"],
+    "examples": ["それを知っていますか？"]
+  },
+  "分かる": {
+    "word": "分かる",
+    "reading": "わかる",
+    "romaji": "wakaru",
+    "pos": ["動詞", "自動詞", "五段"],
+    "gloss": ["明白", "理解"],
+    "examples": ["日本語が分かる", "分かりました"]
+  },
+  "できる": {
+    "word": "できる",
+    "reading": "できる",
+    "romaji": "dekiru",
+    "pos": ["動詞", "自動詞", "一段"],
+    "gloss": ["能", "会", "完成"],
+    "examples": ["日本語ができる", "できますか？"]
+  },
+  "大きい": {
+    "word": "大きい",
+    "reading": "おおきい",
+    "romaji": "ookii",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["大的"],
+    "examples": ["大きい家", "この店は大きいです"]
+  },
+  "小さい": {
+    "word": "小さい",
+    "reading": "ちいさい",
+    "romaji": "chiisai",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["小的"],
+    "examples": ["小さい子供", "この部屋は小さいです"]
+  },
+  "美味しい": {
+    "word": "美味しい",
+    "reading": "おいしい",
+    "romaji": "oishii",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["好吃的", "美味的"],
+    "examples": ["美味しい料理", "このラーメンは美味しい！"]
+  },
+  "楽しい": {
+    "word": "楽しい",
+    "reading": "たのしい",
+    "romaji": "tanoshii",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["快乐的", "愉快的"],
+    "examples": ["楽しい旅行", "昨日は楽しかったです"]
+  },
+  "新しい": {
+    "word": "新しい",
+    "reading": "あたらしい",
+    "romaji": "atarashii",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["新的"],
+    "examples": ["新しい車", "新しい仕事を始めました"]
+  },
+  "古い": {
+    "word": "古い",
+    "reading": "ふるい",
+    "romaji": "furui",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["旧的", "古老的"],
+    "examples": ["古い建物", "この本は古いです"]
+  },
+  "いい": {
+    "word": "いい",
+    "reading": "いい",
+    "romaji": "ii",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["好的"],
+    "examples": ["いい天気", "それはいいですね"]
+  },
+  "悪い": {
+    "word": "悪い",
+    "reading": "わるい",
+    "romaji": "warui",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["坏的", "不好的"],
+    "examples": ["悪い習慣", "天気が悪いです"]
+  },
+  "高い": {
+    "word": "高い",
+    "reading": "たかい",
+    "romaji": "takai",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["高的", "贵的"],
+    "examples": ["高い山", "この店は高いです"]
+  },
+  "安い": {
+    "word": "安い",
+    "reading": "やすい",
+    "romaji": "yasui",
+    "pos": ["形容詞", "イ形容詞"],
+    "gloss": ["便宜的", "安心的"],
+    "examples": ["安い商品", "このスーパーは安いです"]
+  },
+  "好き": {
+    "word": "好き",
+    "reading": "すき",
+    "romaji": "suki",
+    "pos": ["形容動詞", "ナ形容詞"],
+    "gloss": ["喜欢"],
+    "examples": ["猫が好き", "好きな食べ物は何ですか？"]
+  },
+  "元気": {
+    "word": "元気",
+    "reading": "げんき",
+    "romaji": "genki",
+    "pos": ["形容動詞", "ナ形容詞", "名詞"],
+    "gloss": ["精神", "健康", "有活力"],
+    "examples": ["お元気ですか？", "元気な子供"]
+  },
+  "天気": {
+    "word": "天気",
+    "reading": "てんき",
+    "romaji": "tenki",
+    "pos": ["名詞"],
+    "gloss": ["天气"],
+    "examples": ["いい天気ですね。"]
+  },
+  "勉強": {
+    "word": "勉強",
+    "reading": "べんきょう",
+    "romaji": "benkyou",
+    "pos": ["名詞", "サ変動詞"],
+    "gloss": ["学习"],
+    "examples": ["日本語を勉強する", "勉強が好きです"]
+  },
+  "仕事": {
+    "word": "仕事",
+    "reading": "しごと",
+    "romaji": "shigoto",
+    "pos": ["名詞", "サ変動詞"],
+    "gloss": ["工作"],
+    "examples": ["仕事を探す", "どんな仕事をしていますか？"]
+  },
+  "料理": {
+    "word": "料理",
+    "reading": "りょうり",
+    "romaji": "ryouri",
+    "pos": ["名詞", "サ変動詞"],
+    "gloss": ["料理", "做菜"],
+    "examples": ["日本料理", "料理が上手ですね"]
+  },
+  "旅行": {
+    "word": "旅行",
+    "reading": "りょこう",
+    "romaji": "ryokou",
+    "pos": ["名詞", "サ変動詞"],
+    "gloss": ["旅行"],
+    "examples": ["旅行に行く", "楽しい旅行でした"]
+  },
+  "映画": {
+    "word": "映画",
+    "reading": "えいが",
+    "romaji": "eiga",
+    "pos": ["名詞"],
+    "gloss": ["电影"],
+    "examples": ["映画を見る", "どんな映画が好きですか？"]
+  },
+  "音楽": {
+    "word": "音楽",
+    "reading": "おんがく",
+    "romaji": "ongaku",
+    "pos": ["名詞"],
+    "gloss": ["音乐"],
+    "examples": ["音楽を聞く", "日本の音楽が好きです"]
+  },
+  "本": {
+    "word": "本",
+    "reading": "ほん",
+    "romaji": "hon",
+    "pos": ["名詞"],
+    "gloss": ["书", "书籍"],
+    "examples": ["本を読む", "面白い本ですね"]
+  },
+  "お金": {
+    "word": "お金",
+    "reading": "おかね",
+    "romaji": "okane",
+    "pos": ["名詞"],
+    "gloss": ["钱"],
+    "examples": ["お金がない", "お金を払う"]
+  },
+  "水": {
+    "word": "水",
+    "reading": "みず",
+    "romaji": "mizu",
+    "pos": ["名詞"],
+    "gloss": ["水"],
+    "examples": ["水を飲む", "お水をください"]
+  },
+  "お茶": {
+    "word": "お茶",
+    "reading": "おちゃ",
+    "romaji": "ocha",
+    "pos": ["名詞"],
+    "gloss": ["茶"],
+    "examples": ["お茶をどうぞ", "お茶が好きです"]
+  },
+  "ご飯": {
+    "word": "ご飯",
+    "reading": "ごはん",
+    "romaji": "gohan",
+    "pos": ["名詞"],
+    "gloss": ["饭", "米饭", "餐"],
+    "examples": ["ご飯を食べる", "朝ご飯"]
+  },
+  "パン": {
+    "word": "パン",
+    "reading": "パン",
+    "romaji": "pan",
+    "pos": ["名詞"],
+    "gloss": ["面包"],
+    "examples": ["パンを買う", "パン屋さん"]
+  },
+  "肉": {
+    "word": "肉",
+    "reading": "にく",
+    "romaji": "niku",
+    "pos": ["名詞"],
+    "gloss": ["肉"],
+    "examples": ["肉料理", "肉が好きです"]
+  },
+  "魚": {
+    "word": "魚",
+    "reading": "さかな",
+    "romaji": "sakana",
+    "pos": ["名詞"],
+    "gloss": ["鱼"],
+    "examples": ["魚料理", "魚が美味しいです"]
+  },
+  "野菜": {
+    "word": "野菜",
+    "reading": "やさい",
+    "romaji": "yasai",
+    "pos": ["名詞"],
+    "gloss": ["蔬菜"],
+    "examples": ["野菜を食べる", "野菜が好きですか？"]
+  },
+  "果物": {
+    "word": "果物",
+    "reading": "くだもの",
+    "romaji": "kudamono",
+    "pos": ["名詞"],
+    "gloss": ["水果"],
+    "examples": ["果物を食べる", "果物が好きです"]
+  },
+  "駅": {
+    "word": "駅",
+    "reading": "えき",
+    "romaji": "eki",
+    "pos": ["名詞"],
+    "gloss": ["车站"],
+    "examples": ["駅に行く", "駅はどこですか？"]
+  },
+  "病院": {
+    "word": "病院",
+    "reading": "びょういん",
+    "romaji": "byouin",
+    "pos": ["名詞"],
+    "gloss": ["医院"],
+    "examples": ["病院に行く", "病院で働いています"]
+  },
+  "先生": {
+    "word": "先生",
+    "reading": "せんせい",
+    "romaji": "sensei",
+    "pos": ["名詞"],
+    "gloss": ["老师", "医生（尊称）"],
+    "examples": ["先生に聞く", "日本語の先生です"]
+  },
+  "学生": {
+    "word": "学生",
+    "reading": "がくせい",
+    "romaji": "gakusei",
+    "pos": ["名詞"],
+    "gloss": ["学生"],
+    "examples": ["大学生です", "学生時代"]
+  },
+  "名前": {
+    "word": "名前",
+    "reading": "なまえ",
+    "romaji": "namae",
+    "pos": ["名詞"],
+    "gloss": ["名字", "姓名"],
+    "examples": ["お名前は？", "名前を書いてください"]
+  },
+  "電話": {
+    "word": "電話",
+    "reading": "でんわ",
+    "romaji": "denwa",
+    "pos": ["名詞", "サ変動詞"],
+    "gloss": ["电话"],
+    "examples": ["電話する", "電話番号を教えてください"]
+  },
+  "手紙": {
+    "word": "手紙",
+    "reading": "てがみ",
+    "romaji": "tegami",
+    "pos": ["名詞"],
+    "gloss": ["信", "信件"],
+    "examples": ["手紙を書く", "手紙をもらいました"]
+  },
+  "写真": {
+    "word": "写真",
+    "reading": "しゃしん",
+    "romaji": "shashin",
+    "pos": ["名詞"],
+    "gloss": ["照片"],
+    "examples": ["写真を撮る", "この写真はきれいです"]
+  },
+  "服": {
+    "word": "服",
+    "reading": "ふく",
+    "romaji": "fuku",
+    "pos": ["名詞"],
+    "gloss": ["衣服"],
+    "examples": ["新しい服", "服を買う"]
+  },
+  "靴": {
+    "word": "靴",
+    "reading": "くつ",
+    "romaji": "kutsu",
+    "pos": ["名詞"],
+    "gloss": ["鞋子"],
+    "examples": ["靴を履く", "新しい靴が欲しいです"]
+  },
+  "色": {
+    "word": "色",
+    "reading": "いろ",
+    "romaji": "iro",
+    "pos": ["名詞"],
+    "gloss": ["颜色"],
+    "examples": ["何色ですか？", "好きな色は青です"]
+  },
+  "赤": {
+    "word": "赤",
+    "reading": "あか",
+    "romaji": "aka",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["红色"],
+    "examples": ["赤い花", "赤が好きです"]
+  },
+  "青": {
+    "word": "青",
+    "reading": "あお",
+    "romaji": "ao",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["蓝色", "绿色"],
+    "examples": ["青い空", "青がきれいです"]
+  },
+  "白": {
+    "word": "白",
+    "reading": "しろ",
+    "romaji": "shiro",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["白色"],
+    "examples": ["白い雪", "白が好きです"]
+  },
+  "黒": {
+    "word": "黒",
+    "reading": "くろ",
+    "romaji": "kuro",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["黑色"],
+    "examples": ["黒い猫", "黒い服"]
+  },
+  "ここ": {
+    "word": "ここ",
+    "reading": "ここ",
+    "romaji": "koko",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["这里"],
+    "examples": ["ここはどこですか？"]
+  },
+  "そこ": {
+    "word": "そこ",
+    "reading": "そこ",
+    "romaji": "soko",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["那里"],
+    "examples": ["そこにあります"]
+  },
+  "あそこ": {
+    "word": "あそこ",
+    "reading": "あそこ",
+    "romaji": "asoko",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["那里（远处）"],
+    "examples": ["あそこに見えます"]
+  },
+  "どこ": {
+    "word": "どこ",
+    "reading": "どこ",
+    "romaji": "doko",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["哪里"],
+    "examples": ["トイレはどこですか？"]
+  },
+  "これ": {
+    "word": "これ",
+    "reading": "これ",
+    "romaji": "kore",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["这个"],
+    "examples": ["これは何ですか？"]
+  },
+  "それ": {
+    "word": "それ",
+    "reading": "それ",
+    "romaji": "sore",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["那个"],
+    "examples": ["それを見せてください"]
+  },
+  "あれ": {
+    "word": "あれ",
+    "reading": "あれ",
+    "romaji": "are",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["那个（远处）"],
+    "examples": ["あれは何ですか？"]
+  },
+  "何": {
+    "word": "何",
+    "reading": "なに",
+    "romaji": "nani",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["什么"],
+    "examples": ["何を食べますか？", "これは何ですか？"]
+  },
+  "誰": {
+    "word": "誰",
+    "reading": "だれ",
+    "romaji": "dare",
+    "pos": ["名詞", "代名詞"],
+    "gloss": ["谁"],
+    "examples": ["誰ですか？", "誰と来ましたか？"]
+  },
+  "いつ": {
+    "word": "いつ",
+    "reading": "いつ",
+    "romaji": "itsu",
+    "pos": ["名詞", "副詞"],
+    "gloss": ["什么时候"],
+    "examples": ["いつ来ますか？", "誕生日はいつですか？"]
+  },
+  "いくら": {
+    "word": "いくら",
+    "reading": "いくら",
+    "romaji": "ikura",
+    "pos": ["名詞", "副詞"],
+    "gloss": ["多少钱"],
+    "examples": ["これはいくらですか？"]
+  },
+  "一緒": {
+    "word": "一緒",
+    "reading": "いっしょ",
+    "romaji": "issho",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["一起"],
+    "examples": ["一緒に行きましょう", "一緒に食べませんか？"]
+  },
+  "大丈夫": {
+    "word": "大丈夫",
+    "reading": "だいじょうぶ",
+    "romaji": "daijoubu",
+    "pos": ["形容動詞", "ナ形容詞"],
+    "gloss": ["没关系", "没问题"],
+    "examples": ["大丈夫ですか？", "大丈夫です"]
+  },
+  "全然": {
+    "word": "全然",
+    "reading": "ぜんぜん",
+    "romaji": "zenzen",
+    "pos": ["副詞"],
+    "gloss": ["完全（不）", "根本（不）"],
+    "examples": ["全然分かりません"]
+  },
+  "とても": {
+    "word": "とても",
+    "reading": "とても",
+    "romaji": "totemo",
+    "pos": ["副詞"],
+    "gloss": ["非常", "很"],
+    "examples": ["とても美味しいです"]
+  },
+  "少し": {
+    "word": "少し",
+    "reading": "すこし",
+    "romaji": "sukoshi",
+    "pos": ["副詞"],
+    "gloss": ["一点点", "稍微"],
+    "examples": ["少し待ってください"]
+  },
+  "まだ": {
+    "word": "まだ",
+    "reading": "まだ",
+    "romaji": "mada",
+    "pos": ["副詞"],
+    "gloss": ["还", "尚未"],
+    "examples": ["まだ食べていません"]
+  },
+  "もう": {
+    "word": "もう",
+    "reading": "もう",
+    "romaji": "mou",
+    "pos": ["副詞"],
+    "gloss": ["已经", "再"],
+    "examples": ["もう一度ください", "もう食べました"]
+  },
+  "たくさん": {
+    "word": "たくさん",
+    "reading": "たくさん",
+    "romaji": "takusan",
+    "pos": ["副詞", "形容動詞"],
+    "gloss": ["很多"],
+    "examples": ["たくさんあります"]
+  },
+  "今": {
+    "word": "今",
+    "reading": "いま",
+    "romaji": "ima",
+    "pos": ["名詞", "副詞"],
+    "gloss": ["现在"],
+    "examples": ["今何時ですか？"]
+  },
+  "毎日": {
+    "word": "毎日",
+    "reading": "まいにち",
+    "romaji": "mainichi",
+    "pos": ["名詞", "副詞"],
+    "gloss": ["每天"],
+    "examples": ["毎日勉強します"]
+  },
+  "時々": {
+    "word": "時々",
+    "reading": "ときどき",
+    "romaji": "tokidoki",
+    "pos": ["副詞"],
+    "gloss": ["有时", "偶尔"],
+    "examples": ["時々映画を見ます"]
+  },
+  "よく": {
+    "word": "よく",
+    "reading": "よく",
+    "romaji": "yoku",
+    "pos": ["副詞"],
+    "gloss": ["经常", "好好地"],
+    "examples": ["よく分かる", "よく行きます"]
+  },
+  "多分": {
+    "word": "多分",
+    "reading": "たぶん",
+    "romaji": "tabun",
+    "pos": ["副詞"],
+    "gloss": ["大概", "可能"],
+    "examples": ["多分大丈夫です"]
+  },
+  "本当": {
+    "word": "本当",
+    "reading": "ほんとう",
+    "romaji": "hontou",
+    "pos": ["名詞", "形容動詞"],
+    "gloss": ["真的", "真实"],
+    "examples": ["本当ですか？", "本当にありがとう"]
+  },
+  "一": {
+    "word": "一",
+    "reading": "いち",
+    "romaji": "ichi",
+    "pos": ["名詞", "数詞"],
+    "gloss": ["一", "1"],
+    "examples": ["一つください"]
+  },
+  "二": {
+    "word": "二",
+    "reading": "に",
+    "romaji": "ni",
+    "pos": ["名詞", "数詞"],
+    "gloss": ["二", "2"],
+    "examples": ["二つあります"]
+  },
+  "三": {
+    "word": "三",
+    "reading": "さん",
+    "romaji": "san",
+    "pos": ["名詞", "数詞"],
+    "gloss": ["三", "3"],
+    "examples": ["三つください"]
+  },
+  "四": {
+    "word": "四",
+    "reading": "よん",
+    "romaji": "yon",
+    "pos": ["名詞", "数詞"],
+    "gloss": ["四", "4"],
+    "examples": ["四時です"]
+  },
+  "五": {
+    "word": "五",
+    "reading": "ご",
+    "romaji": "go",
+    "pos": ["名詞", "数詞"],
+    "gloss": ["五", "5"],
+    "examples": ["五つあります"]
+  }
+}

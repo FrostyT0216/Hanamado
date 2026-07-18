@@ -1,0 +1,539 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --accent-r: 0;
+    --accent-g: 122;
+    --accent-b: 255;
+    /* 外观个性化变量默认值（与 chatStore 默认值对齐） */
+    --font-scale: 1;
+    --glass-blur: 20px;
+    --bubble-radius: 16px;
+  }
+
+  /* html 与 body 双层兜底背景色，确保任何情况下都不出现纯白 */
+  html {
+    background-color: #f5f5f7;
+  }
+  html.dark {
+    background-color: #1c1c1e;
+  }
+
+  body {
+    @apply bg-apple-gray text-apple-text font-sans antialiased;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    min-height: 100vh;
+  }
+  .dark body,
+  body.dark {
+    @apply bg-apple-dark text-gray-100;
+  }
+
+  /* 背景装饰层：默认不渲染，由 .bg-pattern-* 类触发 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+  }
+
+  /* 点阵 */
+  .bg-pattern-dots body::before {
+    opacity: 1;
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .dark.bg-pattern-dots body::before {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  }
+
+  /* 网格 */
+  .bg-pattern-grid body::before {
+    opacity: 1;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .dark.bg-pattern-grid body::before {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  }
+
+  /* 渐变光晕：跟随主题色 */
+  .bg-pattern-glow body::before {
+    opacity: 1;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08), transparent 45%);
+  }
+  .dark.bg-pattern-glow body::before {
+    background:
+      radial-gradient(circle at 15% 20%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12), transparent 45%);
+  }
+
+  /* 图片背景：自定义图片或必应壁纸 */
+  .bg-pattern-image body::before {
+    opacity: 1;
+    background-image: var(--bg-image, none);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* 可读性遮罩：在图片上覆盖一层较淡的白/黑 */
+  .bg-pattern-image body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    background: rgba(255, 255, 255, 0.62);
+  }
+  .bg-pattern-image.has-bg-image body::after {
+    opacity: 1;
+  }
+  .dark.bg-pattern-image body::after {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Custom selection highlight for cohesive multi-select appearance */
+  ::selection {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
+    color: inherit;
+  }
+  .dark ::selection {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35);
+    color: inherit;
+  }
+
+  /* 动画强度控制：减弱档，保留过渡但缩短到极快 */
+  .motion-reduced-app *,
+  .motion-reduced-app *::before,
+  .motion-reduced-app *::after {
+    animation-duration: 80ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 80ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* 动画强度控制：关闭档，完全禁用 */
+  .motion-off-app *,
+  .motion-off-app *::before,
+  .motion-off-app *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .dark .glass {
+    background: rgba(44, 44, 46, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-card {
+    @apply glass shadow-sm;
+    border-radius: var(--bubble-radius);
+  }
+  .glass-sidebar {
+    background: rgba(245, 245, 247, 0.8);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .dark .glass-sidebar {
+    background: rgba(44, 44, 46, 0.8);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* 字号工具类：通过 --font-scale 缩放，不污染全局 rem */
+  .bubble-text {
+    font-size: calc(0.875rem * var(--font-scale));
+    line-height: 1.625;
+  }
+  .bubble-meta {
+    font-size: calc(0.6875rem * var(--font-scale));
+    line-height: 1.5;
+  }
+  .bubble-translation {
+    font-size: calc(0.8125rem * var(--font-scale));
+    line-height: 1.625;
+  }
+
+  /* Bubble hover glow animation */
+  .bubble-glow {
+    position: relative;
+  }
+  .bubble-glow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
+    height: 2px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  .bubble-glow:hover::after {
+    opacity: 1;
+  }
+
+  /* ===== 聊天气泡样式 ===== */
+
+  /* 基础结构：父级需要在 body 遮罩层之上 */
+  .bubble-user,
+  .bubble-ai {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 用户气泡基础：默认 solid */
+  .bubble-style-solid .bubble-user {
+    background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20);
+    color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+  }
+  .dark.bubble-style-solid .bubble-user {
+    background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.30);
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  /* AI 气泡基础：默认 solid */
+  .bubble-style-solid .bubble-ai {
+    background-color: rgba(255, 255, 255, 0.85);
+    color: #1c1c1e;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+  }
+  .dark.bubble-style-solid .bubble-ai {
+    background-color: rgba(44, 44, 46, 0.85);
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  /* === 毛玻璃模式 === */
+  .bubble-style-glass .bubble-user,
+  .bubble-style-glass .bubble-ai {
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    color: #1c1c1e;
+  }
+  .dark.bubble-style-glass .bubble-user,
+  .dark.bubble-style-glass .bubble-ai {
+    background: rgba(44, 44, 46, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.95);
+  }
+  /* 用户气泡在毛玻璃下需要更明显的强调色光晕 */
+  .bubble-style-glass .bubble-user {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18);
+  }
+  .dark.bubble-style-glass .bubble-user {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.24);
+  }
+
+  /* === 液态玻璃模式 === */
+  /*
+   * 参考 docs/liquid-glass-demo.html 的分层光学结构：
+   *   1. 折射层（glass-copy）：backdrop-filter 对背后内容做强烈模糊与色彩增强
+   *   2. tint 层：半透明加深，让文字可读并体现玻璃厚度
+   *   3. specular 层：多层 inset box-shadow 模拟边缘高光
+   *   4. 外阴影：让气泡"浮"在背景之上
+   *
+   * 由于聊天气泡数量多且位置固定，未采用 demo 中每个 lens 克隆背景副本
+   * 的架构；而是使用 backdrop-filter + 多层阴影/渐变在视觉上模拟厚玻璃。
+   */
+  .bubble-style-liquid .bubble-user,
+  .bubble-style-liquid .bubble-ai {
+    /* 极淡基底 */
+    background: rgba(255, 255, 255, 0.10);
+    /* 强光学滤镜：比毛玻璃更模糊、更饱和、对比更高，模拟厚玻璃折射 */
+    backdrop-filter: blur(26px) saturate(1.75) contrast(1.18) brightness(1.06);
+    -webkit-backdrop-filter: blur(26px) saturate(1.75) contrast(1.18) brightness(1.06);
+    /* 玻璃与空气的清晰界面 */
+    border: 1px solid rgba(255, 255, 255, 0.48);
+    /* 外层浮起阴影 + 多层内嵌 specular 高光（复刻 demo） */
+    box-shadow:
+      0 10px 36px rgba(0, 0, 0, 0.14),
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.42),
+      inset 0 0 5px rgba(255, 255, 255, 0.28),
+      inset 0 0 14px rgba(255, 255, 255, 0.14),
+      inset 0 0 28px rgba(255, 255, 255, 0.06),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1.5px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -6px 16px rgba(0, 0, 0, 0.06);
+    color: #1c1c1e;
+  }
+  .dark.bubble-style-liquid .bubble-user,
+  .dark.bubble-style-liquid .bubble-ai {
+    background: rgba(12, 12, 16, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    box-shadow:
+      0 10px 36px rgba(0, 0, 0, 0.40),
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.30),
+      inset 0 0 5px rgba(255, 255, 255, 0.20),
+      inset 0 0 14px rgba(255, 255, 255, 0.10),
+      inset 0 0 28px rgba(255, 255, 255, 0.04),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -1.5px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -6px 16px rgba(0, 0, 0, 0.18);
+    color: rgba(255, 255, 255, 0.96);
+  }
+  /* 用户气泡：像染色玻璃一样带主题色渐变 */
+  .bubble-style-liquid .bubble-user {
+    background:
+      radial-gradient(
+        120% 120% at 20% 0%,
+        rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.32) 0%,
+        rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08) 55%,
+        transparent 100%
+      ),
+      rgba(255, 255, 255, 0.08);
+  }
+  .dark.bubble-style-liquid .bubble-user {
+    background:
+      radial-gradient(
+        120% 120% at 20% 0%,
+        rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.38) 0%,
+        rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10) 55%,
+        transparent 100%
+      ),
+      rgba(12, 12, 16, 0.20);
+  }
+  /* 顶部强镜面高光（模拟 demo 的 specular） */
+  .bubble-style-liquid .bubble-user::before,
+  .bubble-style-liquid .bubble-ai::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      90% 60% at 50% 0%,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.20) 40%,
+      transparent 75%
+    );
+    mix-blend-mode: screen;
+    opacity: 0.8;
+  }
+
+  /* Flashcard flip */
+  .flashcard {
+    perspective: 1000px;
+  }
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .flashcard-inner.flipped {
+    transform: rotateY(180deg);
+  }
+  .flashcard-front,
+  .flashcard-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .flashcard-back {
+    transform: rotateY(180deg);
+  }
+
+  /* ===== 背单词功能：进度条 ===== */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ===== 已掌握徽章 ===== */
+  .mastery-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 500;
+    background: rgba(16, 185, 129, 0.15);
+    color: rgb(16, 185, 129);
+  }
+  [data-theme="dark"] .mastery-badge {
+    color: rgb(52, 211, 153);
+  }
+
+  /* ===== Markdown 渲染样式（语法解析/纠错面板） ===== */
+  .markdown-body {
+    @apply text-sm leading-relaxed;
+    color: inherit;
+  }
+  .markdown-body > * + * {
+    margin-top: 0.75rem;
+  }
+  .markdown-body h1 {
+    @apply text-lg font-semibold mt-4 mb-2;
+    color: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+  }
+  .markdown-body h2 {
+    @apply text-base font-semibold mt-3 mb-2;
+    color: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+  }
+  .markdown-body h3,
+  .markdown-body h4,
+  .markdown-body h5,
+  .markdown-body h6 {
+    @apply text-sm font-semibold mt-3 mb-1;
+    color: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+  }
+  .markdown-body p {
+    margin-bottom: 0.5rem;
+  }
+  .markdown-body ul {
+    @apply list-disc pl-5;
+  }
+  .markdown-body ol {
+    @apply list-decimal pl-5;
+  }
+  .markdown-body li {
+    @apply mb-1;
+  }
+  .markdown-body blockquote {
+    @apply border-l-2 border-apple-blue/40 pl-3 py-1 my-2 rounded-r-lg;
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .dark .markdown-body blockquote {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .markdown-body code {
+    @apply text-xs px-1 py-0.5 rounded font-mono;
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .dark .markdown-body code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .markdown-body pre {
+    @apply p-3 rounded-xl overflow-x-auto my-2;
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .dark .markdown-body pre {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .markdown-body pre code {
+    @apply bg-transparent p-0 text-xs;
+  }
+  .markdown-body table {
+    @apply w-full text-sm border-collapse my-2;
+  }
+  .markdown-body th,
+  .markdown-body td {
+    @apply border border-black/10 dark:border-white/10 px-2 py-1.5 text-left;
+  }
+  .markdown-body th {
+    @apply font-medium;
+    background: rgba(0, 0, 0, 0.05);
+  }
+  .dark .markdown-body th {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .markdown-body hr {
+    @apply border-t border-black/10 dark:border-white/10 my-3;
+  }
+  .markdown-body a {
+    color: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+    text-decoration: underline;
+  }
+  .markdown-body strong {
+    @apply font-semibold;
+    color: rgb(var(--accent-r) var(--accent-g) var(--accent-b));
+  }
+  .markdown-body em {
+    @apply italic;
+  }
+
+  /* ===== 自定义滚动条 ===== */
+  .custom-scrollbar-viewport {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .custom-scrollbar-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .custom-scrollbar-track {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10);
+  }
+  .dark .custom-scrollbar-track {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.14);
+  }
+
+  .custom-scrollbar-thumb {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 2px 4px rgba(0, 0, 0, 0.12);
+  }
+  .custom-scrollbar-thumb:hover {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.72);
+  }
+  .dark .custom-scrollbar-thumb {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.65);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+      0 2px 4px rgba(0, 0, 0, 0.25);
+  }
+  .dark .custom-scrollbar-thumb:hover {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.80);
+  }
+
+  .custom-scrollbar-thumb-icon {
+    color: rgba(255, 255, 255, 0.95);
+    filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.2));
+  }
+  .dark .custom-scrollbar-thumb-icon {
+    color: rgba(255, 255, 255, 0.95);
+    filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.25));
+  }
+
+  /* Markdown 代码块横向滚动条也隐藏原生样式 */
+  .markdown-body pre {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .markdown-body pre::-webkit-scrollbar {
+    display: none;
+  }
+}
