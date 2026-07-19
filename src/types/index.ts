@@ -9,9 +9,16 @@ export interface Role {
   icon: string;
   /** 角色头像图片路径（位于 public/avatars/ 下，如 /avatars/konbini.png）。未提供时显示聊天气泡占位 */
   avatar?: string;
+  /** 简短身份说明（用于角色选择卡片副标题，如 "32岁·东京·系统工程师"） */
+  description?: string;
+  /** 完整人设（性格/背景/外貌/剧情钩子等），将注入 AI 系统提示以驱动沉浸式对话 */
+  persona?: string;
 }
 
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+
+/** AI 回复长度偏好（5 档） */
+export type ReplyLength = 'very-short' | 'short' | 'medium' | 'long' | 'very-long';
 
 // ========== 消息与会话 ==========
 
@@ -50,6 +57,8 @@ export interface Session {
   title: string;
   roleId: string;
   difficulty: Difficulty;
+  /** AI 回复长度偏好（旧会话可能为空，按 'medium' 处理） */
+  replyLength?: ReplyLength;
   whoStartsFirst: 'user' | 'ai';
   messages: Message[];
   createdAt: number;

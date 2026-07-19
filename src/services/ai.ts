@@ -1,4 +1,5 @@
-import type { AiWordEntry, AiReviewQuiz, ApiConfig, GrammarError, Message, ReviewQuestion, VocabLevel, VocabSentence } from '@/types';
+import type { AiWordEntry, AiReviewQuiz, ApiConfig, GrammarError, Message, ReplyLength, ReviewQuestion, VocabLevel, VocabSentence } from '@/types';
+import { REPLY_LENGTH_INFO } from '@/data/roles';
 import { CHAT_FORMAT_HINT, buildGrammarCheckPrompt, buildReviewQuizPrompt } from '@/utils/prompts';
 
 // ========== Error Types ==========
@@ -777,9 +778,16 @@ export async function sendChatMessage(
   config: ApiConfig,
   systemPrompt: string,
   history: Message[],
-  userMessage: string
+  userMessage: string,
+  replyLength?: ReplyLength
 ): Promise<AiChatResponse> {
   const messages = buildMessages(systemPrompt, history, userMessage);
+
+  // 结合用户全局 Max Tokens 设置与会话级回复长度档位，取更严格的实际上限
+  const lengthLimit = replyLength ? REPLY_LENGTH_INFO[replyLength].maxTokens : undefined;
+  const effectiveMaxTokens = lengthLimit
+    ? Math.min(config.maxTokens, lengthLimit)
+    : config.maxTokens;
 
   let response: Response;
   try {
@@ -793,7 +801,7 @@ export async function sendChatMessage(
         model: config.model,
         messages,
         temperature: Math.max(config.temperature, 1.0),
-        max_tokens: 2048,
+        max_tokens: Math.max(1, effectiveMaxTokens),
         thinking: { type: 'disabled' },
         response_format: { type: 'json_object' },
       }),

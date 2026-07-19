@@ -72,10 +72,10 @@ export function useChat() {
         const role = getRoleById(currentSession.roleId);
         if (!role) throw new Error('Role not found');
 
-        const systemPrompt = buildChatSystemPrompt(role, currentSession.difficulty);
+        const systemPrompt = buildChatSystemPrompt(role, currentSession.difficulty, currentSession.replyLength);
         const history = currentSession.messages;
 
-        const response = await sendChatMessage(apiConfig, systemPrompt, history, text);
+        const response = await sendChatMessage(apiConfig, systemPrompt, history, text, currentSession.replyLength);
 
         updateMessage(currentSessionId, aiMessageId, {
           content: response.message,
@@ -142,10 +142,10 @@ export function useChat() {
         const role = getRoleById(currentSession.roleId);
         if (!role) throw new Error('Role not found');
 
-        const systemPrompt = buildChatSystemPrompt(role, currentSession.difficulty);
+        const systemPrompt = buildChatSystemPrompt(role, currentSession.difficulty, currentSession.replyLength);
         const history = messages.slice(0, failedIdx);
 
-        const response = await sendChatMessage(apiConfig, systemPrompt, history, userMessage.content);
+        const response = await sendChatMessage(apiConfig, systemPrompt, history, userMessage.content, currentSession.replyLength);
 
         updateMessage(currentSessionId, messageId, {
           content: response.message,

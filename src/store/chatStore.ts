@@ -6,6 +6,7 @@ import type {
   Message,
   ApiConfig,
   Difficulty,
+  ReplyLength,
   PanelMode,
   PanelData,
   Theme,
@@ -77,7 +78,7 @@ interface ChatState {
   getCurrentMessages: () => Message[];
 
   // Actions
-  createSession: (roleId: string, difficulty: Difficulty, whoStartsFirst: 'user' | 'ai') => string;
+  createSession: (roleId: string, difficulty: Difficulty, whoStartsFirst: 'user' | 'ai', replyLength?: ReplyLength) => string;
   deleteSession: (sessionId: string) => void;
   switchSession: (sessionId: string) => void;
   addMessage: (sessionId: string, message: Message) => void;
@@ -148,7 +149,7 @@ export const useChatStore = create<ChatState>()(
       },
 
       // Actions
-      createSession: (roleId, difficulty, whoStartsFirst) => {
+      createSession: (roleId, difficulty, whoStartsFirst, replyLength) => {
         const role = getRoleById(roleId);
         const id = nanoid();
         const now = Date.now();
@@ -157,6 +158,7 @@ export const useChatStore = create<ChatState>()(
           title: role ? `${role.icon} ${role.name}` : '新会话',
           roleId,
           difficulty,
+          replyLength,
           whoStartsFirst,
           messages: [],
           createdAt: now,

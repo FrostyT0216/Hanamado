@@ -1,17 +1,32 @@
-import type { Role, Difficulty, VocabLevel, VocabSentence } from '@/types';
+import type { Role, Difficulty, ReplyLength, VocabLevel, VocabSentence } from '@/types';
+import { REPLY_LENGTH_INFO } from '@/data/roles';
 
-export function buildChatSystemPrompt(role: Role, difficulty: Difficulty): string {
+export function buildChatSystemPrompt(
+  role: Role,
+  difficulty: Difficulty,
+  replyLength?: ReplyLength
+): string {
   const diffInfo = {
     beginner: { vocab: 'N5–N4 基础词汇', grammar: '简单句型', length: '1–2 句' },
     intermediate: { vocab: 'N3–N2 词汇', grammar: '中等复杂句', length: '2–3 句' },
     advanced: { vocab: 'N1+ 词汇', grammar: '复杂句，敬语与简语灵活切换', length: '3–5 句' },
   }[difficulty];
 
+  // replyLength 优先级高于 difficulty 默认 length；旧会话无 replyLength 时不注入额外指令
+  const lengthOverride = replyLength ? REPLY_LENGTH_INFO[replyLength] : null;
+
+  const personaBlock = role.persona?.trim()
+    ? `\n\n以下是你的完整人设，请始终一致地演绎这个角色——不要直接复述设定，而是通过语气、用词、提及的经历与心事自然流露：\n${role.persona.trim()}\n`
+    : '';
+
+  const lengthBlock = lengthOverride
+    ? `\n回复长度：${lengthOverride.instruction}（整体回复含 JSON 开销请严格控制在约 ${lengthOverride.maxTokens} tokens 以内，不得超过。）`
+    : '';
+
   return `你是日语对话伙伴「${role.name}（${role.nameJa}）」。
 用语习惯：${role.speechStyle}
 场景：${role.scenario}
-难度：${difficulty === 'beginner' ? '初级' : difficulty === 'intermediate' ? '中级' : '高级'}（${diffInfo.vocab}，${diffInfo.length}，${diffInfo.grammar}）
-
+难度：${difficulty === 'beginner' ? '初级' : difficulty === 'intermediate' ? '中级' : '高级'}（${diffInfo.vocab}，${diffInfo.length}，${diffInfo.grammar}）${personaBlock}${lengthBlock}
 必须严格按JSON格式回复，不要添加任何其他文字。`;
 }
 

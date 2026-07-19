@@ -41,7 +41,7 @@ export default function Modal({ isOpen, onClose, title, children, width = 'max-w
       />
       {/* Modal */}
       <div
-        className={`relative ${width} w-full mx-4 glass-card animate-scale-in max-h-[85vh] flex flex-col`}
+        className={`relative ${width} w-full mx-4 glass-card animate-scale-in max-h-[92vh] flex flex-col`}
       >
         {/* Header */}
         {title && (
@@ -56,7 +56,7 @@ export default function Modal({ isOpen, onClose, title, children, width = 'max-w
           </div>
         )}
         {/* Content */}
-        <CustomScrollbar className="flex-1 overflow-hidden" viewportClassName="p-5">
+        <CustomScrollbar className="flex-1 min-h-0 overflow-hidden" viewportClassName="p-5">
           {children}
         </CustomScrollbar>
       </div>
