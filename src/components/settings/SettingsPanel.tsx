@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactNode, type ChangeEvent } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import GameIcon from '@/components/common/GameIcon';
 import CustomScrollbar from '@/components/common/CustomScrollbar';
+import Modal from '@/components/common/Modal';
 import type { IconName } from '@/components/icons/iconData';
 import { useChatStore } from '@/store/chatStore';
 import { testConnection } from '@/services/ai';
@@ -145,6 +146,30 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('api');
   const [isBingRefreshing, setIsBingRefreshing] = useState(false);
+  // 外部跳转确认弹窗（仅对非 frospon.top 站点弹出）
+  const [pendingLink, setPendingLink] = useState<{ url: string; label: string } | null>(null);
+
+  const handleExternalLink = (url: string, label: string) => {
+    try {
+      const host = new URL(url).hostname;
+      // frospon.top 为本站友链/自有博客，直接跳转
+      if (host === 'frospon.top' || host.endsWith('.frospon.top')) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+    } catch {
+      // URL 解析失败则直接打开
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setPendingLink({ url, label });
+  };
+
+  const confirmExternalLink = () => {
+    if (!pendingLink) return;
+    window.open(pendingLink.url, '_blank', 'noopener,noreferrer');
+    setPendingLink(null);
+  };
 
   const canSave = baseUrl.trim() && apiKey.trim() && model.trim();
 
@@ -797,11 +822,108 @@ export default function SettingsPage() {
                 <p>部署于 Vercel</p>
               </div>
             </div>
+
+            {/* 词库来源 */}
+            <div className="mt-6 p-4 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-2 mb-2">
+                <GameIcon name="book" className="w-4 h-4 text-apple-text-secondary" />
+                <h3 className="text-sm font-medium">词库来源</h3>
+              </div>
+              <p className="text-xs text-apple-text-secondary leading-relaxed mb-3">
+                JLPT 单词数据整理自开源 Anki 牌组 anki-jlpt-decks（GitHub）。
+              </p>
+              <button
+                onClick={() => handleExternalLink('https://github.com/5mdld/anki-jlpt-decks', 'anki-jlpt-decks 仓库')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-apple-blue text-white text-xs font-medium
+                  hover:opacity-90 transition-all"
+              >
+                <GameIcon name="external" className="w-3.5 h-3.5" />
+                访问仓库
+              </button>
+            </div>
+
+            {/* 图标库 */}
+            <div className="mt-3 p-4 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-2 mb-2">
+                <GameIcon name="sparkles" className="w-4 h-4 text-apple-text-secondary" />
+                <h3 className="text-sm font-medium">图标库</h3>
+              </div>
+              <p className="text-xs text-apple-text-secondary leading-relaxed mb-3">
+                应用内图标素材来自开源图标库 game-icon-pack（GitHub）。
+              </p>
+              <button
+                onClick={() => handleExternalLink('https://github.com/Nieobie/game-icon-pack', 'game-icon-pack 仓库')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-apple-blue text-white text-xs font-medium
+                  hover:opacity-90 transition-all"
+              >
+                <GameIcon name="external" className="w-3.5 h-3.5" />
+                访问仓库
+              </button>
+            </div>
+
+            {/* 友情链接 */}
+            <div className="mt-3 p-4 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-2 mb-2">
+                <GameIcon name="message" className="w-4 h-4 text-apple-text-secondary" />
+                <h3 className="text-sm font-medium">友情链接</h3>
+              </div>
+              <p className="text-xs text-apple-text-secondary leading-relaxed mb-3">
+                作者博客 frospon.top — 个人技术与日常分享。
+              </p>
+              <button
+                onClick={() => handleExternalLink('https://frospon.top', 'frospon.top')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-black/10 dark:border-white/10
+                  text-xs font-medium hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all"
+              >
+                <GameIcon name="external" className="w-3.5 h-3.5" />
+                访问博客
+              </button>
+            </div>
           </section>
           )}
 
         </div>
       </CustomScrollbar>
+
+      {/* 外部跳转确认弹窗 */}
+      <Modal
+        isOpen={pendingLink !== null}
+        onClose={() => setPendingLink(null)}
+        title="即将离开本站"
+        width="max-w-sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <GameIcon name="warning" className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+              即将访问的网站并非本网站，请注意安全。请确认您信任该站点后再继续访问。
+            </p>
+          </div>
+          <div className="text-xs text-apple-text-secondary space-y-1.5">
+            <p>目标站点：</p>
+            <p className="font-mono text-[11px] break-all px-2 py-1.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06]">
+              {pendingLink?.url}
+            </p>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => setPendingLink(null)}
+              className="flex-1 py-2.5 rounded-xl border border-black/10 dark:border-white/10 text-sm font-medium
+                hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all"
+            >
+              取消
+            </button>
+            <button
+              onClick={confirmExternalLink}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-apple-blue text-white text-sm font-medium
+                hover:opacity-90 transition-all"
+            >
+              <GameIcon name="external" className="w-4 h-4" />
+              继续访问
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
