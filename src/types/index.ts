@@ -131,7 +131,10 @@ export type Theme = 'light' | 'dark';
 export type FontSize = 'compact' | 'standard' | 'comfortable';
 export type GlassBlur = 'off' | 'soft' | 'standard' | 'strong';
 export type BubbleRadius = 'sharp' | 'standard' | 'soft';
-export type BackgroundPattern = 'solid' | 'dots' | 'grid' | 'glow' | 'image' | 'bing';
+/** 背景装饰：纯图案叠加层 */
+export type BackgroundDecoration = 'none' | 'dots' | 'grid' | 'glow';
+/** 背景图片：纯色（无图）/ 自定义图片 / 必应随机壁纸 */
+export type BackgroundImage = 'solid' | 'image' | 'bing';
 export type MotionLevel = 'off' | 'reduced' | 'standard';
 export type BubbleStyle = 'solid' | 'glass' | 'liquid';
 
@@ -139,7 +142,8 @@ export interface AppearanceSettings {
   fontSize: FontSize;
   glassBlur: GlassBlur;
   bubbleRadius: BubbleRadius;
-  backgroundPattern: BackgroundPattern;
+  backgroundDecoration: BackgroundDecoration;
+  backgroundImage: BackgroundImage;
   motionLevel: MotionLevel;
   backgroundImageUrl: string;
   bubbleStyle: BubbleStyle;

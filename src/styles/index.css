@@ -34,7 +34,7 @@
     @apply bg-apple-dark text-gray-100;
   }
 
-  /* 背景装饰层：默认不渲染，由 .bg-pattern-* 类触发 */
+  /* 背景图片层：由 .has-bg-image 类触发，仅当用户选择 image/bing 时渲染 */
   body::before {
     content: '';
     position: fixed;
@@ -43,70 +43,79 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.4s ease-out;
+    background-image: var(--bg-image, none);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .has-bg-image body::before {
+    opacity: 1;
+  }
+
+  /* 可读性遮罩：在背景图片上覆盖一层较淡的白/黑，确保文字可读 */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    background: rgba(255, 255, 255, 0.62);
+  }
+  .has-bg-image body::after {
+    opacity: 1;
+  }
+  .dark body::after {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  /* 装饰层：独立 fixed div（.bg-decoration-layer），由 .bg-decoration-* 类触发图案。
+     z-index: 2 → 位于背景图片(0)与可读性遮罩(1)之上，确保装饰图案清晰可见 */
+  .bg-decoration-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
   }
 
   /* 点阵 */
-  .bg-pattern-dots body::before {
+  .bg-decoration-dots .bg-decoration-layer {
     opacity: 1;
     background-image: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
     background-size: 22px 22px;
   }
-  .dark.bg-pattern-dots body::before {
+  .dark.bg-decoration-dots .bg-decoration-layer {
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   }
 
   /* 网格 */
-  .bg-pattern-grid body::before {
+  .bg-decoration-grid .bg-decoration-layer {
     opacity: 1;
     background-image:
       linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
     background-size: 32px 32px;
   }
-  .dark.bg-pattern-grid body::before {
+  .dark.bg-decoration-grid .bg-decoration-layer {
     background-image:
       linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   }
 
   /* 渐变光晕：跟随主题色 */
-  .bg-pattern-glow body::before {
+  .bg-decoration-glow .bg-decoration-layer {
     opacity: 1;
     background:
       radial-gradient(circle at 15% 20%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10), transparent 40%),
       radial-gradient(circle at 85% 80%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08), transparent 45%);
   }
-  .dark.bg-pattern-glow body::before {
+  .dark.bg-decoration-glow .bg-decoration-layer {
     background:
       radial-gradient(circle at 15% 20%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16), transparent 40%),
       radial-gradient(circle at 85% 80%, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12), transparent 45%);
-  }
-
-  /* 图片背景：自定义图片或必应壁纸 */
-  .bg-pattern-image body::before {
-    opacity: 1;
-    background-image: var(--bg-image, none);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-
-  /* 可读性遮罩：在图片上覆盖一层较淡的白/黑 */
-  .bg-pattern-image body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease-out;
-    background: rgba(255, 255, 255, 0.62);
-  }
-  .bg-pattern-image.has-bg-image body::after {
-    opacity: 1;
-  }
-  .dark.bg-pattern-image body::after {
-    background: rgba(0, 0, 0, 0.55);
   }
 
   /* Custom selection highlight for cohesive multi-select appearance */
@@ -135,6 +144,29 @@
   .motion-off-app *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* 应用标题"話窓"主题色流动渐变 */
+  .app-title-gradient {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55) 0%,
+      rgba(var(--accent-r), var(--accent-g), var(--accent-b), 1) 25%,
+      rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55) 50%,
+      rgba(var(--accent-r), var(--accent-g), var(--accent-b), 1) 75%,
+      rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.55) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: app-title-flow 4s linear infinite;
+  }
+
+  @keyframes app-title-flow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: -200% 50%; }
   }
 }
 
@@ -176,6 +208,28 @@
   .bubble-translation {
     font-size: calc(0.8125rem * var(--font-scale));
     line-height: 1.625;
+  }
+
+  /* 余额低预警：红色呼吸灯 */
+  .balance-warning-breathe {
+    animation: balance-warning-breathe 1.6s ease-in-out infinite;
+  }
+
+  @keyframes balance-warning-breathe {
+    0%, 100% {
+      opacity: 1;
+      text-shadow: 0 0 0 rgba(239, 68, 68, 0);
+    }
+    50% {
+      opacity: 0.55;
+      text-shadow: 0 0 8px rgba(239, 68, 68, 0.45);
+    }
+  }
+
+  .motion-off-app .balance-warning-breathe,
+  .motion-reduced-app .balance-warning-breathe {
+    animation: none;
+    opacity: 1;
   }
 
   /* Bubble hover glow animation */

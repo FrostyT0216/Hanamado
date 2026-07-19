@@ -1,60 +1,20 @@
 /**
- * 必应每日壁纸获取服务
+ * 必应随机壁纸服务
  *
- * 通过 CORS 代理获取必应官方 API 返回的壁纸列表，
- * 随机选取一张作为背景图。
+ * 使用 https://bing.img.run/rand.php 直接作为图片源，
+ * 该接口每次请求返回一张随机的 Bing 历史壁纸（1080P）。
+ *
+ * 注意：URL 本身不变时浏览器会缓存，因此「换一张」需要在 URL 上
+ * 拼接时间戳作为 cache-buster。
  */
 
-const BING_API_URL =
-  'https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=zh-CN';
-
-/** CORS 代理列表，按优先级尝试 */
-const CORS_PROXIES = [
-  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url: string) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-];
-
-interface BingImageItem {
-  url: string;
-  copyright: string;
-}
-
-interface BingApiResponse {
-  images: BingImageItem[];
-}
+const BING_RANDOM_URL = 'https://bing.img.run/rand.php';
 
 /**
- * 获取一张随机必应壁纸的完整 URL
+ * 生成一个新的必应随机壁纸 URL（带 cache-buster）
  *
- * @returns 完整的图片 URL（可直接用于 CSS background-image）
- * @throws 网络错误或解析失败时抛出异常
+ * @returns 可直接用于 <img src> 或 CSS background-image 的 URL
  */
-export async function fetchBingImageUrl(): Promise<string> {
-  let lastError: unknown = null;
-
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const proxiedUrl = proxy(BING_API_URL);
-      const response = await fetch(proxiedUrl, {
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!response.ok) {
-        lastError = new Error(`HTTP ${response.status}`);
-        continue;
-      }
-      const data: BingApiResponse = await response.json();
-      if (!data.images || data.images.length === 0) {
-        lastError = new Error('No images in response');
-        continue;
-      }
-      // 随机选取一张
-      const pick = data.images[Math.floor(Math.random() * data.images.length)];
-      return 'https://cn.bing.com' + pick.url;
-    } catch (err) {
-      lastError = err;
-      continue;
-    }
-  }
-
-  throw lastError ?? new Error('All CORS proxies failed');
+export function generateBingImageUrl(): string {
+  return `${BING_RANDOM_URL}?t=${Date.now()}`;
 }

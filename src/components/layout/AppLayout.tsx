@@ -19,7 +19,8 @@ export default function AppLayout() {
   const isLearnPlanOpen = useChatStore((s) => s.isLearnPlanOpen);
   const isFlashcardOpen = useChatStore((s) => s.isFlashcardOpen);
   const setLearnPlanOpen = useChatStore((s) => s.setLearnPlanOpen);
-  const backgroundPattern = useChatStore((s) => s.backgroundPattern);
+  const backgroundDecoration = useChatStore((s) => s.backgroundDecoration);
+  const backgroundImage = useChatStore((s) => s.backgroundImage);
   const { isLoading: isVocabLoading, progress: vocabProgress } = useVocabInit();
 
   const isLearningActive = useLearningStore((s) => s.isLearningActive);
@@ -36,12 +37,15 @@ export default function AppLayout() {
     }
   }, [lastResult, isLearningActive, isReviewActive, setLearnPlanOpen]);
 
-  // 仅在启用背景装饰图案时让 main 透明，以露出 body::before 装饰层；
-  // 纯色模式下保留 main 的实色背景，避免任何情况下出现纯白
-  const hasPattern = backgroundPattern !== 'solid';
+  // 启用任何背景层（装饰图案或背景图片）时让 main 透明，以露出 body 装饰/图片层；
+  // 纯色 + 无装饰模式下保留 main 的实色背景，避免任何情况下出现纯白
+  const hasBackgroundLayer = backgroundDecoration !== 'none' || backgroundImage !== 'solid';
 
   return (
     <div className="h-screen flex overflow-hidden">
+      {/* 装饰层：fixed 定位的独立 div，承载点阵/网格/光晕图案 */}
+      <div className="bg-decoration-layer" aria-hidden />
+
       {/* Vocab loading progress bar */}
       {isVocabLoading && (
         <div className="fixed top-0 left-0 right-0 h-0.5 z-50 bg-black/[0.03] dark:bg-white/[0.05]">
@@ -63,7 +67,7 @@ export default function AppLayout() {
       {/* Main content area */}
       <main
         className={`flex-1 flex flex-col min-w-0 relative z-10 transition-colors duration-300
-          ${hasPattern ? 'bg-transparent' : 'bg-apple-gray dark:bg-apple-dark'}`}
+          ${hasBackgroundLayer ? 'bg-transparent' : 'bg-apple-gray dark:bg-apple-dark'}`}
       >
         {/* Chat Area */}
         <div

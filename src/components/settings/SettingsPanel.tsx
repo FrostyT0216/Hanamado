@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode, type ChangeEvent } from 'react';
+import { useState, useEffect, useRef, type ReactNode, type ChangeEvent } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import GameIcon from '@/components/common/GameIcon';
 import CustomScrollbar from '@/components/common/CustomScrollbar';
@@ -6,13 +6,30 @@ import Modal from '@/components/common/Modal';
 import type { IconName } from '@/components/icons/iconData';
 import { useChatStore } from '@/store/chatStore';
 import { testConnection } from '@/services/ai';
-import { fetchBingImageUrl } from '@/services/bing';
+import { generateBingImageUrl } from '@/services/bing';
+import AiConfigStatusCard from '@/components/settings/AiConfigStatusCard';
+import {
+  ALL_CATEGORIES,
+  CATEGORY_DESCRIPTIONS,
+  CATEGORY_LABELS,
+  applyImport,
+  downloadBackup,
+  exportData,
+  formatBytes,
+  formatExportTime,
+  parseBackupFile,
+  summarizeBackup,
+  type BackupPayload,
+  type DataCategory,
+  type ImportSummary,
+} from '@/services/dataTransfer';
 import type {
   ApiConfig,
   FontSize,
   GlassBlur,
   BubbleRadius,
-  BackgroundPattern,
+  BackgroundDecoration,
+  BackgroundImage,
   MotionLevel,
   BubbleStyle,
 } from '@/types';
@@ -25,11 +42,12 @@ const ACCENT_PRESETS = [
   { name: '薰衣草', color: '#af52de' },
 ];
 
-type SettingsCategory = 'api' | 'appearance' | 'about';
+type SettingsCategory = 'api' | 'appearance' | 'data' | 'about';
 
 const CATEGORIES: { id: SettingsCategory; label: string; icon: IconName }[] = [
   { id: 'api', label: 'API 配置', icon: 'settings' },
   { id: 'appearance', label: '外观', icon: 'sparkles' },
+  { id: 'data', label: '数据', icon: 'database' },
   { id: 'about', label: '关于', icon: 'info' },
 ];
 
@@ -117,6 +135,8 @@ export default function SettingsPage() {
   const closeSettings = useChatStore((s) => s.setSettingsOpen);
   const apiConfig = useChatStore((s) => s.apiConfig);
   const setApiConfig = useChatStore((s) => s.setApiConfig);
+  const balanceWarningThreshold = useChatStore((s) => s.balanceWarningThreshold);
+  const setBalanceWarningThreshold = useChatStore((s) => s.setBalanceWarningThreshold);
   const accentColor = useChatStore((s) => s.accentColor);
   const setAccentColor = useChatStore((s) => s.setAccentColor);
   const appearance = useChatStore(
@@ -124,7 +144,8 @@ export default function SettingsPage() {
       fontSize: s.fontSize,
       glassBlur: s.glassBlur,
       bubbleRadius: s.bubbleRadius,
-      backgroundPattern: s.backgroundPattern,
+      backgroundDecoration: s.backgroundDecoration,
+      backgroundImage: s.backgroundImage,
       motionLevel: s.motionLevel,
       backgroundImageUrl: s.backgroundImageUrl,
       bubbleStyle: s.bubbleStyle,
@@ -140,14 +161,116 @@ export default function SettingsPage() {
   const [model, setModel] = useState(apiConfig?.model ?? 'gpt-4o-mini');
   const [temperature, setTemperature] = useState(apiConfig?.temperature ?? 0.7);
   const [maxTokens, setMaxTokens] = useState(apiConfig?.maxTokens ?? 1024);
+  const [warningThreshold, setWarningThreshold] = useState(balanceWarningThreshold);
   const [showKey, setShowKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saved, setSaved] = useState(false);
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('api');
-  const [isBingRefreshing, setIsBingRefreshing] = useState(false);
   // 外部跳转确认弹窗（仅对非 frospon.top 站点弹出）
   const [pendingLink, setPendingLink] = useState<{ url: string; label: string } | null>(null);
+
+  // ===== 数据备份与恢复 =====
+  // 导出：默认全选
+  const [exportCategories, setExportCategories] = useState<Set<DataCategory>>(
+    () => new Set(ALL_CATEGORIES)
+  );
+  // 导出确认弹窗（包含 API Key 时再次提示）
+  const [pendingExport, setPendingExport] = useState<BackupPayload | null>(null);
+  // 导入：备份文件解析结果
+  const [importPayload, setImportPayload] = useState<BackupPayload | null>(null);
+  const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
+  const [importCategories, setImportCategories] = useState<Set<DataCategory>>(
+    () => new Set()
+  );
+  const [importError, setImportError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const toggleExportCategory = (cat: DataCategory) => {
+    setExportCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  };
+
+  const handleExportClick = () => {
+    if (exportCategories.size === 0) return;
+    const payload = exportData(Array.from(exportCategories));
+    // 如果包含 API 配置且存在 apiKey，弹出安全确认
+    if (exportCategories.has('api') && payload.data.apiConfig?.apiKey) {
+      setPendingExport(payload);
+    } else {
+      downloadBackup(payload);
+    }
+  };
+
+  const confirmExport = () => {
+    if (!pendingExport) return;
+    downloadBackup(pendingExport);
+    setPendingExport(null);
+  };
+
+  const handleImportClick = () => {
+    setImportError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setImportError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result ?? '');
+        const payload = parseBackupFile(text);
+        const summary = summarizeBackup(payload);
+        setImportPayload(payload);
+        setImportSummary(summary);
+        // 默认勾选备份文件中实际存在的所有类别
+        setImportCategories(new Set(summary.availableCategories));
+      } catch (err) {
+        setImportError(err instanceof Error ? err.message : '读取备份文件失败');
+      }
+    };
+    reader.onerror = () => setImportError('读取文件失败');
+    reader.readAsText(file);
+  };
+
+  const toggleImportCategory = (cat: DataCategory) => {
+    setImportCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  };
+
+  const closeImportModal = () => {
+    setImportPayload(null);
+    setImportSummary(null);
+    setImportCategories(new Set());
+    setImportError(null);
+  };
+
+  const confirmImport = () => {
+    if (!importPayload || importCategories.size === 0) return;
+    setIsImporting(true);
+    try {
+      applyImport(importPayload, Array.from(importCategories));
+      // 短暂延迟让 UI 显示「正在导入…」状态后刷新页面以重新加载所有 store
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
+    } catch (err) {
+      setIsImporting(false);
+      setImportError(err instanceof Error ? err.message : '导入失败');
+    }
+  };
 
   const handleExternalLink = (url: string, label: string) => {
     try {
@@ -211,6 +334,7 @@ export default function SettingsPage() {
       maxTokens,
     };
     setApiConfig(config);
+    setBalanceWarningThreshold(Math.max(0, Number(warningThreshold) || 0));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -228,17 +352,9 @@ export default function SettingsPage() {
     e.target.value = '';
   };
 
-  // 刷新必应随机壁纸
-  const handleRefreshBing = async () => {
-    setIsBingRefreshing(true);
-    try {
-      const url = await fetchBingImageUrl();
-      setBingImageUrl(url);
-    } catch (err) {
-      console.error('[Hanamado] 必应壁纸刷新失败:', err);
-    } finally {
-      setIsBingRefreshing(false);
-    }
+  // 刷新必应随机壁纸：直接生成新 URL（带 cache-buster）即可换一张
+  const handleRefreshBing = () => {
+    setBingImageUrl(generateBingImageUrl());
   };
 
   return (
@@ -388,6 +504,27 @@ export default function SettingsPage() {
                     border border-transparent focus:border-apple-blue/30 focus:bg-white dark:focus:bg-white/[0.08]
                     outline-none text-sm transition-all"
                 />
+              </div>
+
+              {/* Balance warning threshold */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  余额预警阈值（元）
+                </label>
+                <input
+                  type="number"
+                  value={warningThreshold}
+                  onChange={(e) => setWarningThreshold(parseFloat(e.target.value) || 0)}
+                  min={0}
+                  step="0.01"
+                  placeholder="10"
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05]
+                    border border-transparent focus:border-apple-blue/30 focus:bg-white dark:focus:bg-white/[0.08]
+                    outline-none text-sm transition-all"
+                />
+                <p className="text-[11px] text-apple-text-secondary mt-1">
+                  余额低于该数值时，侧边栏余额将显示红色呼吸灯提醒
+                </p>
               </div>
 
               {/* Test result */}
@@ -647,12 +784,12 @@ export default function SettingsPage() {
                 ]}
               />
 
-              <VisualCard<BackgroundPattern>
+              <VisualCard<BackgroundDecoration>
                 label="背景装饰"
-                value={appearance.backgroundPattern}
-                onChange={(v) => setAppearance({ backgroundPattern: v })}
+                value={appearance.backgroundDecoration}
+                onChange={(v) => setAppearance({ backgroundDecoration: v })}
                 options={[
-                  { value: 'solid', label: '纯色', preview: <div className="w-12 h-8 rounded-md bg-apple-gray dark:bg-apple-dark border border-black/10 dark:border-white/10" /> },
+                  { value: 'none', label: '无装饰', preview: <div className="w-12 h-8 rounded-md bg-apple-gray dark:bg-apple-dark border border-black/10 dark:border-white/10" /> },
                   {
                     value: 'dots',
                     label: '点阵',
@@ -695,6 +832,15 @@ export default function SettingsPage() {
                       />
                     ),
                   },
+                ]}
+              />
+
+              <VisualCard<BackgroundImage>
+                label="背景图片"
+                value={appearance.backgroundImage}
+                onChange={(v) => setAppearance({ backgroundImage: v })}
+                options={[
+                  { value: 'solid', label: '纯色', preview: <div className="w-12 h-8 rounded-md bg-apple-gray dark:bg-apple-dark border border-black/10 dark:border-white/10" /> },
                   {
                     value: 'image',
                     label: '图片',
@@ -725,7 +871,7 @@ export default function SettingsPage() {
               />
 
               {/* 图片模式：URL 输入 + 本地上传 */}
-              {appearance.backgroundPattern === 'image' && (
+              {appearance.backgroundImage === 'image' && (
                 <div className="mt-1 space-y-2">
                   <input
                     type="text"
@@ -766,20 +912,18 @@ export default function SettingsPage() {
               )}
 
               {/* 必应模式：刷新按钮 */}
-              {appearance.backgroundPattern === 'bing' && (
+              {appearance.backgroundImage === 'bing' && (
                 <div className="mt-1 flex items-center gap-3">
                   <p className="text-xs text-apple-text-secondary flex-1">
-                    {bingImageUrl ? '已加载必应壁纸，点击刷新换一张' : '正在获取必应壁纸…'}
+                    {bingImageUrl ? '已加载必应壁纸，点击刷新换一张' : '点击刷新获取必应壁纸'}
                   </p>
                   <button
                     onClick={handleRefreshBing}
-                    disabled={isBingRefreshing}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium border border-black/10 dark:border-white/10
-                      hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors inline-flex items-center gap-1.5
-                      disabled:opacity-40 disabled:cursor-not-allowed"
+                      hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors inline-flex items-center gap-1.5"
                   >
-                    <GameIcon name="refresh" className={`w-3.5 h-3.5 ${isBingRefreshing ? 'animate-spin' : ''}`} />
-                    {isBingRefreshing ? '刷新中' : '刷新'}
+                    <GameIcon name="refresh" className="w-3.5 h-3.5" />
+                    刷新
                   </button>
                 </div>
               )}
@@ -799,6 +943,111 @@ export default function SettingsPage() {
           </>
           )}
 
+          {/* ===== Category: Data ===== */}
+          {activeCategory === 'data' && (
+          <>
+          <section>
+            <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-apple-blue" />
+              导出数据
+            </h2>
+            <p className="text-xs text-apple-text-secondary mb-4 leading-relaxed">
+              将应用数据打包为 JSON 备份文件，可用于跨设备迁移或本地存档。
+            </p>
+
+            {/* 安全警告：仅当选中 API 配置时显示 */}
+            {exportCategories.has('api') && (
+              <div className="flex items-start gap-2.5 px-4 py-3 mb-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <GameIcon name="warning" className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed space-y-1">
+                  <p className="font-medium">导出文件将包含 API 密钥</p>
+                  <p>
+                    为方便快速导入使用，备份文件中的 API Key 以明文形式保存。
+                    请妥善保管导出的文件，<span className="font-semibold">不要随意传播或上传到公开场所</span>。
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 类别多选 */}
+            <div className="space-y-2 mb-4">
+              {ALL_CATEGORIES.map((cat) => {
+                const checked = exportCategories.has(cat);
+                return (
+                  <label
+                    key={cat}
+                    className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all
+                      hover:bg-black/[0.02] dark:hover:bg-white/[0.03]
+                      border-black/8 dark:border-white/8"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleExportCategory(cat)}
+                      className="mt-0.5 w-4 h-4 rounded accent-apple-blue cursor-pointer flex-shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">{CATEGORY_LABELS[cat]}</div>
+                      <div className="text-[11px] text-apple-text-secondary mt-0.5 leading-relaxed">
+                        {CATEGORY_DESCRIPTIONS[cat]}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={handleExportClick}
+              disabled={exportCategories.size === 0}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-apple-blue text-white text-sm font-medium
+                disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+            >
+              <GameIcon name="download" className="w-4 h-4" />
+              导出数据
+            </button>
+          </section>
+
+          {/* Divider */}
+          <div className="border-t border-black/5 dark:border-white/5" />
+
+          <section>
+            <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-apple-blue" />
+              导入数据
+            </h2>
+            <p className="text-xs text-apple-text-secondary mb-4 leading-relaxed">
+              从备份文件恢复数据。<span className="text-amber-600 dark:text-amber-400">导入会覆盖当前对应类别的数据</span>，建议先导出当前数据作为保险。
+            </p>
+
+            {importError && (
+              <div className="flex items-start gap-2.5 px-4 py-3 mb-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <GameIcon name="warning" className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                  {importError}
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={handleImportClick}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-black/10 dark:border-white/10 text-sm font-medium
+                hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all"
+            >
+              <GameIcon name="upload" className="w-4 h-4" />
+              选择备份文件
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleFileSelected}
+              className="hidden"
+            />
+          </section>
+          </>
+          )}
+
           {/* ===== Category: About ===== */}
           {activeCategory === 'about' && (
           <section>
@@ -806,17 +1055,27 @@ export default function SettingsPage() {
               <span className="w-1 h-4 rounded-full bg-apple-blue" />
               关于
             </h2>
-            <div className="text-center space-y-3 py-4">
-              <div className="flex justify-center">
+            <div className="text-center space-y-2 py-4">
+              <div className="flex justify-center mb-2">
                 <GameIcon name="message" className="w-12 h-12" />
               </div>
-              <h2 className="text-2xl font-semibold">話窓 Hanamado</h2>
-              <p className="text-sm text-apple-text-secondary">v1.0</p>
-              <p className="text-sm text-apple-text-secondary leading-relaxed max-w-xs mx-auto">
-                一款日语 AI 对话学习工具，通过 AI 角色对话提升日语能力。
-                支持自动分词、点击查词、语法查询等功能。
+              <h2 className="app-title-gradient text-5xl font-bold leading-tight tracking-tight">
+                話窓
+              </h2>
+              <p className="text-base font-medium text-apple-text-secondary tracking-wide">
+                Hanamado
               </p>
-              <div className="pt-3 text-[11px] text-apple-text-secondary space-y-0.5">
+              <p className="text-xs text-apple-text-secondary mt-1">v1.0</p>
+              <p className="text-sm text-apple-text-secondary leading-relaxed max-w-xs mx-auto mt-2">
+                一款日语 AI 对话学习工具
+              </p>
+
+              {/* AI 配置状态卡片 */}
+              <div className="text-left">
+                <AiConfigStatusCard />
+              </div>
+
+              <div className="pt-4 text-[11px] text-apple-text-secondary space-y-0.5">
                 <p>React + TypeScript + Vite</p>
                 <p>Tailwind CSS · Zustand · react-markdown</p>
                 <p>部署于 Vercel</p>
@@ -922,6 +1181,174 @@ export default function SettingsPage() {
               继续访问
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* 导出确认弹窗：包含 API Key 时再次提示安全风险 */}
+      <Modal
+        isOpen={pendingExport !== null}
+        onClose={() => setPendingExport(null)}
+        title="安全提示"
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <GameIcon name="warning" className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed space-y-1.5">
+              <p className="font-medium">即将导出包含 API 密钥的备份文件</p>
+              <p>
+                为方便快速导入使用，备份文件中的 API Key 以明文形式保存。任何拿到该文件的人都可以使用你的 API 额度。
+              </p>
+              <p>
+                请妥善保管导出的文件，<span className="font-semibold">不要随意传播或上传到公开场所</span>（如 GitHub、网盘分享、聊天群等）。
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-apple-text-secondary leading-relaxed">
+            建议在导入完成后，及时删除存放于本地的备份文件，或定期在 API 服务商后台轮换密钥。
+          </p>
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => setPendingExport(null)}
+              className="flex-1 py-2.5 rounded-xl border border-black/10 dark:border-white/10 text-sm font-medium
+                hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all"
+            >
+              取消
+            </button>
+            <button
+              onClick={confirmExport}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-apple-blue text-white text-sm font-medium
+                hover:opacity-90 transition-all"
+            >
+              <GameIcon name="download" className="w-4 h-4" />
+              确认导出
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 导入预览弹窗：选择要恢复的类别 */}
+      <Modal
+        isOpen={importPayload !== null}
+        onClose={closeImportModal}
+        title="导入备份"
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          {importSummary && (
+            <>
+              {/* 备份文件信息 */}
+              <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/5 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-apple-text-secondary">导出时间</span>
+                  <span className="font-medium tabular-nums">
+                    {importSummary.exportedAt
+                      ? formatExportTime(importSummary.exportedAt)
+                      : '未知'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-apple-text-secondary">文件大小</span>
+                  <span className="font-medium tabular-nums">
+                    {formatBytes(importSummary.sizeBytes)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-apple-text-secondary">聊天记录</span>
+                  <span className="font-medium tabular-nums">
+                    {importSummary.sessionsCount} 条会话
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-apple-text-secondary">AI 收录词库</span>
+                  <span className="font-medium tabular-nums">
+                    {importSummary.aiVocabCount} 个词条
+                  </span>
+                </div>
+                {importSummary.hasApiConfig && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-apple-text-secondary">API 配置</span>
+                    <span className="font-medium text-amber-600 dark:text-amber-400">含 API Key</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 覆盖警告 */}
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <GameIcon name="warning" className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                  导入将<strong>覆盖</strong>当前所选类别的数据。请确认无需保留现有数据后再继续。
+                </p>
+              </div>
+
+              {/* 类别多选 */}
+              <div>
+                <p className="text-xs font-medium mb-2">选择要恢复的类别</p>
+                <div className="space-y-2">
+                  {importSummary.availableCategories.map((cat) => {
+                    const checked = importCategories.has(cat);
+                    return (
+                      <label
+                        key={cat}
+                        className="flex items-start gap-3 p-2.5 rounded-xl border cursor-pointer transition-all
+                          hover:bg-black/[0.02] dark:hover:bg-white/[0.03]
+                          border-black/8 dark:border-white/8"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleImportCategory(cat)}
+                          className="mt-0.5 w-4 h-4 rounded accent-apple-blue cursor-pointer flex-shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium">{CATEGORY_LABELS[cat]}</div>
+                          <div className="text-[11px] text-apple-text-secondary mt-0.5 leading-relaxed">
+                            {CATEGORY_DESCRIPTIONS[cat]}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {importError && (
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                  <GameIcon name="warning" className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                    {importError}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={closeImportModal}
+                  disabled={isImporting}
+                  className="flex-1 py-2.5 rounded-xl border border-black/10 dark:border-white/10 text-sm font-medium
+                    hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-all
+                    disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={confirmImport}
+                  disabled={importCategories.size === 0 || isImporting}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-apple-blue text-white text-sm font-medium
+                    hover:opacity-90 transition-all
+                    disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <GameIcon name="upload" className="w-4 h-4" />
+                  {isImporting ? '正在导入…' : '确认导入'}
+                </button>
+              </div>
+              {isImporting && (
+                <p className="text-[11px] text-apple-text-secondary text-center">
+                  导入完成后将自动刷新页面以应用更改
+                </p>
+              )}
+            </>
+          )}
         </div>
       </Modal>
     </div>

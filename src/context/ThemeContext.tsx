@@ -1,12 +1,13 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '@/store/chatStore';
-import { fetchBingImageUrl } from '@/services/bing';
+import { generateBingImageUrl } from '@/services/bing';
 import type {
   FontSize,
   GlassBlur,
   BubbleRadius,
-  BackgroundPattern,
+  BackgroundDecoration,
+  BackgroundImage,
   MotionLevel,
   BubbleStyle,
 } from '@/types';
@@ -41,13 +42,12 @@ const BUBBLE_RADIUS_PX: Record<BubbleRadius, number> = {
   soft: 22,
 };
 
-const PATTERN_CLASS: Record<BackgroundPattern, string> = {
-  solid: '',
-  dots: 'bg-pattern-dots',
-  grid: 'bg-pattern-grid',
-  glow: 'bg-pattern-glow',
-  image: 'bg-pattern-image',
-  bing: 'bg-pattern-image',
+/** 装饰层类名（none 不添加任何类） */
+const DECORATION_CLASS: Record<BackgroundDecoration, string> = {
+  none: '',
+  dots: 'bg-decoration-dots',
+  grid: 'bg-decoration-grid',
+  glow: 'bg-decoration-glow',
 };
 
 const MOTION_CLASS: Record<MotionLevel, string> = {
@@ -62,7 +62,7 @@ const BUBBLE_STYLE_CLASS: Record<BubbleStyle, string> = {
   liquid: 'bubble-style-liquid',
 };
 
-const ALL_PATTERN_CLASSES = ['bg-pattern-dots', 'bg-pattern-grid', 'bg-pattern-glow', 'bg-pattern-image'];
+const ALL_DECORATION_CLASSES = ['bg-decoration-dots', 'bg-decoration-grid', 'bg-decoration-glow'];
 const ALL_MOTION_CLASSES = ['motion-off-app', 'motion-reduced-app'];
 const ALL_BUBBLE_STYLE_CLASSES = ['bubble-style-solid', 'bubble-style-glass', 'bubble-style-liquid'];
 
@@ -77,7 +77,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       fontSize: s.fontSize,
       glassBlur: s.glassBlur,
       bubbleRadius: s.bubbleRadius,
-      backgroundPattern: s.backgroundPattern,
+      backgroundDecoration: s.backgroundDecoration,
+      backgroundImage: s.backgroundImage,
       motionLevel: s.motionLevel,
       backgroundImageUrl: s.backgroundImageUrl,
       bubbleStyle: s.bubbleStyle,
@@ -85,7 +86,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
   const bingImageUrl = useChatStore((s) => s.bingImageUrl);
   const setBingImageUrl = useChatStore((s) => s.setBingImageUrl);
-  const bingFetchInFlight = useRef(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -116,12 +116,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     // 移除旧值，再按当前值添加
     root.classList.remove(
-      ...ALL_PATTERN_CLASSES,
+      ...ALL_DECORATION_CLASSES,
       ...ALL_MOTION_CLASSES,
       ...ALL_BUBBLE_STYLE_CLASSES
     );
-    const patternCls = PATTERN_CLASS[appearance.backgroundPattern];
-    if (patternCls) root.classList.add(patternCls);
+    const decorationCls = DECORATION_CLASS[appearance.backgroundDecoration];
+    if (decorationCls) root.classList.add(decorationCls);
     const motionCls = MOTION_CLASS[appearance.motionLevel];
     if (motionCls) root.classList.add(motionCls);
     root.classList.add(BUBBLE_STYLE_CLASS[appearance.bubbleStyle]);
@@ -129,21 +129,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     appearance.fontSize,
     appearance.glassBlur,
     appearance.bubbleRadius,
-    appearance.backgroundPattern,
+    appearance.backgroundDecoration,
     appearance.motionLevel,
     appearance.bubbleStyle,
   ]);
 
-  // 背景图片：根据 pattern 设置 --bg-image 变量与 has-bg-image 类名
-  // 'image' → 使用用户自定义 URL；'bing' → 使用缓存的必应 URL（无缓存时自动获取）
+  // 背景图片：根据 backgroundImage 设置 --bg-image 变量与 has-bg-image 类名
+  // 'image' → 使用用户自定义 URL；'bing' → 使用缓存的必应 URL（无缓存时自动生成）
   useEffect(() => {
     const root = document.documentElement;
-    const pattern = appearance.backgroundPattern;
+    const mode = appearance.backgroundImage;
 
     let imageUrl = '';
-    if (pattern === 'image') {
+    if (mode === 'image') {
       imageUrl = appearance.backgroundImageUrl;
-    } else if (pattern === 'bing') {
+    } else if (mode === 'bing') {
       imageUrl = bingImageUrl;
     }
 
@@ -155,17 +155,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('has-bg-image');
     }
 
-    // 必应模式且无缓存时，自动拉取一张随机壁纸
-    if (pattern === 'bing' && !bingImageUrl && !bingFetchInFlight.current) {
-      bingFetchInFlight.current = true;
-      fetchBingImageUrl()
-        .then((url) => setBingImageUrl(url))
-        .catch((err) => console.error('[Hanamado] 必应壁纸获取失败:', err))
-        .finally(() => {
-          bingFetchInFlight.current = false;
-        });
+    // 必应模式且无缓存时，自动生成一张随机壁纸 URL
+    if (mode === 'bing' && !bingImageUrl) {
+      setBingImageUrl(generateBingImageUrl());
     }
-  }, [appearance.backgroundPattern, appearance.backgroundImageUrl, bingImageUrl, setBingImageUrl]);
+  }, [appearance.backgroundImage, appearance.backgroundImageUrl, bingImageUrl, setBingImageUrl]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

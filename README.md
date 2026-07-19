@@ -2,6 +2,8 @@
 
 > 一款纯网页架构的日语 AI 对话学习工具，通过 AI 角色对话提升日语能力。
 
+🌐 **在线使用**：<https://hanamado.frospon.top>
+
 ## ✨ 功能特色
 
 - **AI 角色对话**：与 6 种不同角色（便利店店员、大学朋友、面试官、居酒屋老板、旅行向导、同事）进行情景对话
@@ -158,4 +160,14 @@ vercel --prod
 
 ## 📄 许可
 
-MIT
+- **项目源代码**：[CC BY-NC 4.0](./LICENSE)（署名-非商业性使用 4.0）
+- **第三方数据资源**：词库、词典、图标等数据具有独立的许可证，详见 [NOTICE.md](./NOTICE.md)
+
+| 资源 | 来源 | 许可证 |
+|------|------|--------|
+| 项目源代码 | [FrostyT0216](https://github.com/FrostyT0216) | CC BY-NC 4.0（非商业性使用） |
+| JLPT 词库（vocab-*.json） | [5mdld/anki-jlpt-decks](https://github.com/5mdld/anki-jlpt-decks) | CC BY-NC 4.0（非商业性使用） |
+| 日中词典（jmdict-zh.json） | [jiang-wei/local-jmdict-zh](https://github.com/jiang-wei/local-jmdict-zh)（基于 EDRDG JMdict） | CC BY-SA 4.0（相同方式分享） |
+| 游戏图标 | [game-icons.net](https://game-icons.net/) | CC BY 3.0 |
+
+> ⚠️ 本项目源代码及包含的 JLPT 词库数据均采用 CC BY-NC 4.0，**未经授权不得用于商业目的**。

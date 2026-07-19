@@ -14,7 +14,8 @@ import type {
   FontSize,
   GlassBlur,
   BubbleRadius,
-  BackgroundPattern,
+  BackgroundDecoration,
+  BackgroundImage,
   MotionLevel,
   BubbleStyle,
 } from '@/types';
@@ -32,12 +33,14 @@ type PersistedState = Pick<
   | 'fontSize'
   | 'glassBlur'
   | 'bubbleRadius'
-  | 'backgroundPattern'
+  | 'backgroundDecoration'
+  | 'backgroundImage'
   | 'motionLevel'
   | 'backgroundImageUrl'
   | 'bingImageUrl'
   | 'bubbleStyle'
   | 'knowledgePanelWidth'
+  | 'balanceWarningThreshold'
 >;
 
 interface ChatState {
@@ -59,12 +62,14 @@ interface ChatState {
   fontSize: FontSize;
   glassBlur: GlassBlur;
   bubbleRadius: BubbleRadius;
-  backgroundPattern: BackgroundPattern;
+  backgroundDecoration: BackgroundDecoration;
+  backgroundImage: BackgroundImage;
   motionLevel: MotionLevel;
   backgroundImageUrl: string;
   bingImageUrl: string;
   bubbleStyle: BubbleStyle;
   knowledgePanelWidth: number;
+  balanceWarningThreshold: number;
   grammarQuery: GrammarQueryState;
 
   // Computed (via getters)
@@ -92,6 +97,7 @@ interface ChatState {
   setKnowledgePanelWidth: (width: number) => void;
   toggleTheme: () => void;
   setGrammarQuery: (state: Partial<GrammarQueryState>) => void;
+  setBalanceWarningThreshold: (threshold: number) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -115,12 +121,14 @@ export const useChatStore = create<ChatState>()(
       fontSize: 'standard',
       glassBlur: 'standard',
       bubbleRadius: 'standard',
-      backgroundPattern: 'solid',
+      backgroundDecoration: 'none',
+      backgroundImage: 'solid',
       motionLevel: 'standard',
       backgroundImageUrl: '',
       bingImageUrl: '',
       bubbleStyle: 'solid',
       knowledgePanelWidth: 360,
+      balanceWarningThreshold: 10,
       grammarQuery: {
         sentence: '',
         explanation: null,
@@ -252,6 +260,10 @@ export const useChatStore = create<ChatState>()(
           grammarQuery: { ...state.grammarQuery, ...partial },
         }));
       },
+
+      setBalanceWarningThreshold: (threshold) => {
+        set({ balanceWarningThreshold: Math.max(0, threshold) });
+      },
     }),
     {
       name: 'hanamado-store',
@@ -265,13 +277,32 @@ export const useChatStore = create<ChatState>()(
         fontSize: state.fontSize,
         glassBlur: state.glassBlur,
         bubbleRadius: state.bubbleRadius,
-        backgroundPattern: state.backgroundPattern,
+        backgroundDecoration: state.backgroundDecoration,
+        backgroundImage: state.backgroundImage,
         motionLevel: state.motionLevel,
         backgroundImageUrl: state.backgroundImageUrl,
         bingImageUrl: state.bingImageUrl,
         bubbleStyle: state.bubbleStyle,
         knowledgePanelWidth: state.knowledgePanelWidth,
+        balanceWarningThreshold: state.balanceWarningThreshold,
       }),
+      // 旧版用单一 backgroundPattern 字段，迁移到 decoration + image 两个独立字段
+      migrate: (persisted: unknown): PersistedState => {
+        const s = (persisted ?? {}) as Record<string, unknown>;
+        const oldPattern = s.backgroundPattern as string | undefined;
+        if (oldPattern && s.backgroundDecoration === undefined && s.backgroundImage === undefined) {
+          if (oldPattern === 'solid' || oldPattern === 'image' || oldPattern === 'bing') {
+            s.backgroundDecoration = 'none';
+            s.backgroundImage = oldPattern;
+          } else if (oldPattern === 'dots' || oldPattern === 'grid' || oldPattern === 'glow') {
+            s.backgroundDecoration = oldPattern;
+            s.backgroundImage = 'solid';
+          }
+          delete s.backgroundPattern;
+        }
+        return s as PersistedState;
+      },
+      version: 2,
     }
   )
 );
